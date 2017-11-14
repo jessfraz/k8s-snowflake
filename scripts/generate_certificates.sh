@@ -2,8 +2,6 @@
 #
 # This script generates certificates for nodes.
 #
-# Outputs: the temporary directory where the certificates can be found.
-#
 set -e
 set -o pipefail
 
@@ -98,7 +96,7 @@ generate_certificates() {
 	# Google
 	# public_address=$(gcloud compute addresses describe "$CONTROLLER_NODE_NAME" --region "$(gcloud config get-value compute/region)" --format 'value(address)')
 	# Azure
-	public_address=$(az network public-ip show -g "$RESOURCE_GROUP" --name "k8s-public-ip" --query 'ipAddress' -o tsv)
+	public_address=$(az network public-ip show -g "$RESOURCE_GROUP" --name "k8s-public-ip" --query 'ipAddress' -o tsv | tr -d '[:space:]')
 	internal_ips=$(az vm list-ip-addresses -g kubernetes-clear-linux -o table | tail -n +3 | awk '{print $2}' | tr '\n' ',' | sed 's/,*$//g')
 
 	# create the kube-apiserver client certificate

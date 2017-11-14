@@ -21,4 +21,10 @@ echo "Generating kubeconfigs locally with kubectl..."
 # shellcheck disable=SC1090
 source "${DIR}/generate_configuration_files.sh"
 generate_configuration_files
-echo "Certificates successfully generated in ${KUBECONFIG_TMP_DIR}!"
+echo "Kubeconfigs successfully generated in ${KUBECONFIG_TMP_DIR}!"
+
+echo "Generating encryption config locally..."
+# shellcheck disable=SC1090
+source "${DIR}/generate_encryption_config.sh"
+generate_encryption_config
+echo "Encryption config successfully generated in ${ENCRYPTION_CONFIG}!"

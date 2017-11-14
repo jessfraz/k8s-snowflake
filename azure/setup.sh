@@ -37,7 +37,7 @@ VM_USER="azureuser"
 OS_SYSTEM="clear-linux-project:clear-linux-os:containers:18860.0.0"
 
 create_resource_group() {
-	exists=$(az group exists --name kubernetes-clear-linux  | tr -d '[:space:]')
+	exists=$(az group exists --name kubernetes-clear-linux | tr -d '[:space:]')
 
 	# Create the resource group if it does not already exist.
 	if [[ "$exists" != "true" ]]; then

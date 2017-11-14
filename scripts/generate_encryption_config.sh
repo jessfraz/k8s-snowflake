@@ -1,7 +1,4 @@
 #!/bin/bash
-#
-# Outputs: the file where the encryption config can be found
-#
 set -e
 set -o pipefail
 
@@ -24,7 +21,6 @@ generate_encryption_config() {
 		   - identity: {}
 	EOF
 
-	echo "$configfile"
+	export ENCRYPTION_CONFIG="$configfile"
+	echo "Encryption config generated in ENCRYPTION_CONFIG env var: $ENCRYPTION_CONFIG"
 }
-
-generate_encryption_config

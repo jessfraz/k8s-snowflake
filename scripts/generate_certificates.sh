@@ -61,14 +61,14 @@ generate_certificates() {
 		# Google
 		# external_ip=$(gcloud compute instances describe "$instance" --format 'value(networkInterfaces[0].accessConfigs[0].natIP)')
 		# Azure
-		external_ip=$(az vm show -g "$RESOURCE_GROUP" -n "$instance" --show-details --query 'publicIps' -o tsv)
+		external_ip=$(az vm show -g "$RESOURCE_GROUP" -n "$instance" --show-details --query 'publicIps' -o tsv | tr -d '[:space:]')
 
 		# get the internal ip for the instance
 		# this is cloud provider specific
 		# Google
 		# internal_ip=$(gcloud compute instances describe "$instance" --format 'value(networkInterfaces[0].networkIP)')
 		# Azure
-		internal_ip=$(az vm show -g "$RESOURCE_GROUP" -n "$instance" --show-details --query 'privateIps' -o tsv)
+		internal_ip=$(az vm show -g "$RESOURCE_GROUP" -n "$instance" --show-details --query 'privateIps' -o tsv | tr -d '[:space:]')
 
 		# generate the certificates
 		echo "Generating certificate for ${instance}..."
@@ -97,7 +97,8 @@ generate_certificates() {
 	# public_address=$(gcloud compute addresses describe "$CONTROLLER_NODE_NAME" --region "$(gcloud config get-value compute/region)" --format 'value(address)')
 	# Azure
 	public_address=$(az network public-ip show -g "$RESOURCE_GROUP" --name "k8s-public-ip" --query 'ipAddress' -o tsv | tr -d '[:space:]')
-	internal_ips=$(az vm list-ip-addresses -g kubernetes-clear-linux -o table | tail -n +3 | awk '{print $2}' | tr '\n' ',' | sed 's/,*$//g')
+	# get the controller internal ips
+	internal_ips=$(az vm list-ip-addresses -g kubernetes-clear-linux -o table | grep controller | awk '{print $2}' | tr '\n' ',' | sed 's/,*$//g')
 
 	# create the kube-apiserver client certificate
 	# 	outputs: kubernetes-key.pem kubernetes.pem

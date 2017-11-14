@@ -2,24 +2,14 @@
 set -e
 set -o pipefail
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 generate_encryption_config() {
 	ENCRYPTION_KEY=$(head -c 32 /dev/urandom | base64)
 
 	tmpdir=$(mktemp -d)
 	configfile="${tmpdir}/encryption-config.yaml"
-	cat > "$configfile" <<-EOF
-	kind: EncryptionConfig
-	apiVersion: v1
-	resources:
-	  - resources:
-		  - secrets
-		providers:
-		  - aescbc:
-			  keys:
-				- name: key1
-				  secret: ${ENCRYPTION_KEY}
-		   - identity: {}
-	EOF
+	sed "s/SECRET/${ENCRYPTION_KEY}/g" "${DIR}/../etc/encryption-config.yaml" > "$configfile"
 
 	export ENCRYPTION_CONFIG="$configfile"
 	echo "Encryption config generated in ENCRYPTION_CONFIG env var: $ENCRYPTION_CONFIG"

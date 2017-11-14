@@ -17,21 +17,21 @@ SCRIPT_DIR="${DIR}/../scripts"
 export RESOURCE_GROUP=${RESOURCE_GROUP:-kubernetes-clear-linux}
 export REGION=${REGION:-eastus}
 export CONTROLLER_NODE_NAME=${CONTROLLER_NODE_NAME:-controller-node}
-export SSH_KEYFILE=${SSH_KEYFILE:-${HOME}/.ssh/id_rsa.pub}
+export SSH_KEYFILE=${SSH_KEYFILE:-${HOME}/.ssh/id_rsa}
 export WORKERS=${WORKERS:-3}
+export VM_USER=${VM_USER:-azureuser}
 
 if [[ ! -f "$SSH_KEYFILE" ]]; then
 	echo >&2 "SSH_KEYFILE $SSH_KEYFILE does not exist."
 	echo >&2 "Change the SSH_KEYFILE variable to a new path or create an ssh key there."
 	exit 1
 fi
-SSH_KEYFILE_VALUE=$(cat "$SSH_KEYFILE")
+SSH_KEYFILE_VALUE=$(cat "${SSH_KEYFILE}.pub")
 
 PUBLIC_IP_NAME="k8s-public-ip"
 VIRTUAL_NETWORK_NAME="k8s-virtual-network"
 
 VM_SIZE="Standard_D2s_v3"
-VM_USER="azureuser"
 # From:
 # 	az vm image list --publisher clear-linux-project --all
 OS_SYSTEM="clear-linux-project:clear-linux-os:containers:18860.0.0"

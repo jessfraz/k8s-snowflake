@@ -119,8 +119,8 @@ do_k8s_controller(){
 }
 
 # TODO: uncomment these
-#do_certs
-#do_kubeconfigs
-#do_encryption_config
-#do_etcd
+do_certs
+do_kubeconfigs
+do_encryption_config
+do_etcd
 do_k8s_controller

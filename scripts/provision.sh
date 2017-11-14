@@ -14,9 +14,6 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # Azure
 controller_ip=$(az network public-ip show -g "$RESOURCE_GROUP" --name "k8s-public-ip" --query 'ipAddress' -o tsv | tr -d '[:space:]')
 
-# get the worker ips
-ips=( $(az vm list-ip-addresses -g kubernetes-clear-linux -o table | tail -n +3 | awk '{print $1}' | tr '\n' ' ' | sed 's/,*$//g') )
-
 echo "Provisioning kubernetes cluster for resource group $RESOURCE_GROUP..."
 
 do_certs(){
@@ -84,12 +81,12 @@ do_encryption_config(){
 do_etcd(){
 	echo "Moving certficates to correct location for etcd on controller node..."
 	ssh "${VM_USER}@${controller_ip}" sudo mkdir -p /etc/etcd/
-	ssh "${VM_USER}@${controller_ip}" sudo cp ca.pem kubernetes-key.pem kubernetes.pem /etc/etcd/
+	ssh "${VM_USER}@${controller_ip}" sudo mv ca.pem kubernetes-key.pem kubernetes.pem /etc/etcd/
 
 	echo "Copying etcd.service to controller node..."
 	scp "${DIR}/../etc/systemd/system/etcd.service" "${VM_USER}@${controller_ip}":~/
 	ssh "${VM_USER}@${controller_ip}" sudo mkdir -p /etc/systemd/system/
-	ssh "${VM_USER}@${controller_ip}" sudo cp etcd.service /etc/systemd/system/
+	ssh "${VM_USER}@${controller_ip}" sudo mv etcd.service /etc/systemd/system/
 
 	echo "Copying etcd install script to controller node..."
 	scp "${DIR}/install_etcd.sh" "${VM_USER}@${controller_ip}":~/
@@ -101,14 +98,14 @@ do_etcd(){
 do_k8s_controller(){
 	echo "Moving certficates to correct location for k8s on controller node..."
 	ssh "${VM_USER}@${controller_ip}" sudo mkdir -p /var/lib/kubernetes/
-	ssh "${VM_USER}@${controller_ip}" sudo cp ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem encryption-config.yaml /var/lib/kubernetes/
+	ssh "${VM_USER}@${controller_ip}" sudo mv ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem encryption-config.yaml /var/lib/kubernetes/
 
 	services=( kube-apiserver.service kube-scheduler.service kube-controller-manager.service )
 	for service in "${services[@]}"; do
 		echo "Copying $service to controller node..."
 		scp "${DIR}/../etc/systemd/system/${service}" "${VM_USER}@${controller_ip}":~/
 		ssh "${VM_USER}@${controller_ip}" sudo mkdir -p /etc/systemd/system/
-		ssh "${VM_USER}@${controller_ip}" sudo cp "$service" /etc/systemd/system/
+		ssh "${VM_USER}@${controller_ip}" sudo mv "$service" /etc/systemd/system/
 	done
 
 	echo "Copying k8s controller install script to controller node..."

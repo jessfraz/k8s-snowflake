@@ -9,7 +9,7 @@ generate_encryption_config() {
 
 	tmpdir=$(mktemp -d)
 	configfile="${tmpdir}/encryption-config.yaml"
-	sed "s/SECRET/${ENCRYPTION_KEY}/g" "${DIR}/../etc/encryption-config.yaml" > "$configfile"
+	sed "s#SECRET#${ENCRYPTION_KEY}#g" "${DIR}/../etc/encryption-config.yaml" > "$configfile"
 
 	export ENCRYPTION_CONFIG="$configfile"
 	echo "Encryption config generated in ENCRYPTION_CONFIG env var: $ENCRYPTION_CONFIG"

@@ -88,6 +88,7 @@ create_worker_nodes() {
 	done
 }
 
+# TODO: uncomment these
 create_resource_group
 #create_virtual_network
 #create_apiserver_ip_address

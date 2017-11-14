@@ -28,8 +28,6 @@ install_cfssl() {
 }
 
 generate_certificates() {
-	instances=( "$@" )
-
 	tmpdir=$(mktemp -d)
 
 	# create the certificates in a temporary directory
@@ -113,6 +111,9 @@ generate_certificates() {
 		-hostname="${internal_ips},${public_address},127.0.0.1,kubernetes.default" \
 		-profile=kubernetes \
 		"${CA_CONFIG_DIR}/kubernetes-csr.json" | cfssljson -bare kubernetes
+
+	# cleanup the config temporary directory
+	rm -rf "$config_tmpdir"
 
 	export CERTIFICATE_TMP_DIR="$tmpdir"
 	echo "Certs generated in CERTIFICATE_TMP_DIR env var: $CERTIFICATE_TMP_DIR"

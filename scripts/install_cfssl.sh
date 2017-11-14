@@ -2,6 +2,7 @@
 set -e
 set -o pipefail
 
+# From https://pkg.cfssl.org/
 CFSSL_VERSION="1.2"
 
 install_cfssl() {

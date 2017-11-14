@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# Outputs: the file where the encryption config can be found
+#
 set -e
 set -o pipefail
 

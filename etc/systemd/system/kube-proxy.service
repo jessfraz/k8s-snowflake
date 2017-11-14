@@ -1,0 +1,15 @@
+[Unit]
+Description=Kubernetes Kube Proxy
+Documentation=https://github.com/kubernetes/kubernetes
+
+[Service]
+ExecStart=/usr/bin/kube-proxy \
+	--cluster-cidr=10.200.0.0/16 \
+	--kubeconfig=/var/lib/kube-proxy/kubeconfig \
+	--proxy-mode=iptables \
+	--v=2
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

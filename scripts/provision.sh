@@ -103,11 +103,11 @@ do_k8s_controller(){
 	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" sudo mkdir -p /var/lib/kubernetes/
 	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" sudo mv ca.pem kubernetes-key.pem kubernetes.pem ca-key.pem encryption-config.yaml /var/lib/kubernetes/
 
+	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" sudo mkdir -p /etc/systemd/system/
 	services=( kube-apiserver.service kube-scheduler.service kube-controller-manager.service )
 	for service in "${services[@]}"; do
 		echo "Copying $service to controller node..."
 		scp -i "$SSH_KEYFILE" "${DIR}/../etc/systemd/system/${service}" "${VM_USER}@${controller_ip}":~/
-		ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" sudo mkdir -p /etc/systemd/system/
 		ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" sudo mv "$service" /etc/systemd/system/
 	done
 
@@ -135,8 +135,52 @@ do_k8s_controller(){
 	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl apply -f cluster-role-binding-kube-apiserver-to-kubelet.yaml
 }
 
-do_certs
-do_kubeconfigs
-do_encryption_config
-do_etcd
-do_k8s_controller
+do_k8s_worker(){
+	for i in $(seq 1 "$WORKERS"); do
+		instance="worker-node-${i}"
+
+		# get the external ip for the instance
+		# this is cloud provider specific
+		# Google
+		# external_ip=$(gcloud compute instances describe "$instance" --format 'value(networkInterfaces[0].accessConfigs[0].natIP)')
+		# Azure
+		external_ip=$(az vm show -g "$RESOURCE_GROUP" -n "$instance" --show-details --query 'publicIps' -o tsv | tr -d '[:space:]')
+
+		echo "Moving certficates to correct location for k8s on ${instance}..."
+		ssh -i "$SSH_KEYFILE" "${VM_USER}@${external_ip}" sudo mkdir -p /var/lib/kubelet/
+		ssh -i "$SSH_KEYFILE" "${VM_USER}@${external_ip}" sudo cp "${instance}-key.pem" "${instance}.pem" /var/lib/kubelet/
+		ssh -i "$SSH_KEYFILE" "${VM_USER}@${external_ip}" sudo mkdir -p /var/lib/kubernetes/
+		ssh -i "$SSH_KEYFILE" "${VM_USER}@${external_ip}" sudo cp ca.pem /var/lib/kubernetes/
+		ssh -i "$SSH_KEYFILE" "${VM_USER}@${external_ip}" sudo cp "${instance}.kubeconfig" /var/lib/kubelet/kubeconfig
+
+		scp -i "$SSH_KEYFILE" "${DIR}/../etc/cni/net.d/"*.conf "${VM_USER}@${external_ip}":~/
+
+		echo "Moving cni configs to correct location for k8s on ${instance}..."
+		ssh -i "$SSH_KEYFILE" "${VM_USER}@${external_ip}" sudo mkdir -p /etc/cni/net.d/
+		ssh -i "$SSH_KEYFILE" "${VM_USER}@${external_ip}" sudo mv 10-bridge.conf 99-loopback.conf /etc/cni/net.d/
+
+		echo "Copying k8s worker install script to ${instance}..."
+		scp -i "$SSH_KEYFILE" "${DIR}/install_kubernetes_worker.sh" "${VM_USER}@${external_ip}":~/
+
+		ssh -i "$SSH_KEYFILE" "${VM_USER}@${external_ip}" sudo mkdir -p /etc/systemd/system/
+		services=( kubelet.service kube-proxy.service )
+		for service in "${services[@]}"; do
+			echo "Copying $service to ${instance}..."
+			scp -i "$SSH_KEYFILE" "${DIR}/../etc/systemd/system/${service}" "${VM_USER}@${external_ip}":~/
+			ssh -i "$SSH_KEYFILE" "${VM_USER}@${external_ip}" sudo mv "$service" /etc/systemd/system/
+		done
+
+		echo "Running install_kubernetes_worker.sh on ${instance}..."
+		ssh -i "$SSH_KEYFILE" "${VM_USER}@${external_ip}" sudo ./install_kubernetes_worker.sh
+
+		# cleanup the script after install
+		ssh -i "$SSH_KEYFILE" "${VM_USER}@${external_ip}" rm install_kubernetes_worker.sh
+	done
+}
+
+#do_certs
+#do_kubeconfigs
+#do_encryption_config
+#do_etcd
+#do_k8s_controller
+do_k8s_worker

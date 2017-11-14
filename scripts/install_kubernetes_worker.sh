@@ -62,14 +62,14 @@ configure() {
 	hostname=$(hostname -s)
 
 	# update the cni bridge conf file
-	sed -i "s/POD_CIDR/${pod_cidr}/g" /etc/cni/net.d/10-bridge.conf
+	sed -i "s#POD_CIDR#${pod_cidr}#g" /etc/cni/net.d/10-bridge.conf
 
 	# update the kubelet systemd service file
-	sed -i "s/POD_CIDR/${pod_cidr}/g" /etc/systemd/system/kubelet.service
+	sed -i "s#POD_CIDR#${pod_cidr}#g" /etc/systemd/system/kubelet.service
 	sed -i "s/HOSTNAME/${hostname}/g" /etc/systemd/system/kubelet.service
 
 	# update the kube-proxy systemd service file
-	sed -i "s/POD_CIDR/${pod_cidr}/g" /etc/systemd/system/kube-proxy.service
+	sed -i "s#POD_CIDR#${pod_cidr}#g" /etc/systemd/system/kube-proxy.service
 	sed -i "s/HOSTNAME/${hostname}/g" /etc/systemd/system/kube-proxy.service
 
 	systemctl daemon-reload

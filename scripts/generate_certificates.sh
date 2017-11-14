@@ -50,10 +50,9 @@ generate_certificates() {
 
 	# create the kubelet client certificates
 	# 	outputs: worker-0-key.pem worker-0.pem worker-1-key.pem worker-1.pem...
-	config_tmpdir=$(mktemp -d)
 	for i in $(seq 1 "$WORKERS"); do
 		instance="worker-node-${i}"
-		instance_csr_config="${config_tmpdir}/${instance}-csr.json"
+		instance_csr_config="${tmpdir}/${instance}-csr.json"
 		sed "s/INSTANCE/${instance}/g" "${CA_CONFIG_DIR}/instance-csr.json" > "$instance_csr_config"
 
 		# get the external ip for the instance
@@ -98,7 +97,7 @@ generate_certificates() {
 	# Azure
 	public_address=$(az network public-ip show -g "$RESOURCE_GROUP" --name "k8s-public-ip" --query 'ipAddress' -o tsv | tr -d '[:space:]')
 	# get the controller internal ips
-	internal_ips=$(az vm list-ip-addresses -g kubernetes-clear-linux -o table | grep controller | awk '{print $3}' | tr '\n' ',' | sed 's/,*$//g')
+	internal_ips=$(az vm list-ip-addresses -g kubernetes-clear-linux -o table | grep controller | awk '{print $3}' | tr -d '[:space:]' | tr '\n' ',' | sed 's/,*$//g')
 
 	# create the kube-apiserver client certificate
 	# 	outputs: kubernetes-key.pem kubernetes.pem
@@ -110,9 +109,6 @@ generate_certificates() {
 		-hostname="${internal_ips},${public_address},127.0.0.1,kubernetes.default" \
 		-profile=kubernetes \
 		"${CA_CONFIG_DIR}/kubernetes-csr.json" | cfssljson -bare kubernetes
-
-	# cleanup the config temporary directory
-	rm -rf "$config_tmpdir"
 
 	export CERTIFICATE_TMP_DIR="$tmpdir"
 	echo "Certs generated in CERTIFICATE_TMP_DIR env var: $CERTIFICATE_TMP_DIR"

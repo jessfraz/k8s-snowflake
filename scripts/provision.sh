@@ -81,7 +81,7 @@ do_encryption_config(){
 do_etcd(){
 	echo "Moving certficates to correct location for etcd on controller node..."
 	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" sudo mkdir -p /etc/etcd/
-	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" sudo mv ca.pem kubernetes-key.pem kubernetes.pem /etc/etcd/
+	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" sudo cp ca.pem kubernetes-key.pem kubernetes.pem /etc/etcd/
 
 	echo "Copying etcd.service to controller node..."
 	scp -i "$SSH_KEYFILE" "${DIR}/../etc/systemd/system/etcd.service" "${VM_USER}@${controller_ip}":~/
@@ -98,7 +98,7 @@ do_etcd(){
 do_k8s_controller(){
 	echo "Moving certficates to correct location for k8s on controller node..."
 	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" sudo mkdir -p /var/lib/kubernetes/
-	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" sudo mv ca-key.pem encryption-config.yaml /var/lib/kubernetes/
+	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" sudo mv ca.pem kubernetes-key.pem kubernetes.pem ca-key.pem encryption-config.yaml /var/lib/kubernetes/
 
 	services=( kube-apiserver.service kube-scheduler.service kube-controller-manager.service )
 	for service in "${services[@]}"; do
@@ -113,6 +113,9 @@ do_k8s_controller(){
 
 	echo "Running install_kubernetes_controller.sh on controller node..."
 	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" sudo ./install_kubernetes_controller.sh
+
+	echo "Copying k8s rbac configs to controller node..."
+	scp -i "$SSH_KEYFILE" "${DIR}/../etc/cluster-role-"*.yaml "${VM_USER}@${controller_ip}":~/
 }
 
 do_certs

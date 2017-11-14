@@ -11,10 +11,13 @@ set -o pipefail
 # Check if we have the azure command line.
 command -v az >/dev/null 2>&1 || { echo >&2 "This script requires the azure command line tool, az. Aborting."; exit 1; }
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPT_DIR="${DIR}/../scripts"
+
 export RESOURCE_GROUP=${RESOURCE_GROUP:-kubernetes-clear-linux}
 export REGION=${REGION:-eastus}
 export CONTROLLER_NODE_NAME=${CONTROLLER_NODE_NAME:-controller-node}
-export SSH_KEYFILE=${SSH_KEYFILE:-${HOME}/.ssh/id_ed25519.pub}
+export SSH_KEYFILE=${SSH_KEYFILE:-${HOME}/.ssh/id_rsa.pub}
 export WORKERS=${WORKERS:-3}
 
 if [[ ! -f "$SSH_KEYFILE" ]]; then
@@ -31,7 +34,7 @@ VM_SIZE="Standard_D2s_v3"
 VM_USER="azureuser"
 # From:
 # 	az vm image list --publisher clear-linux-project --all
-OS_SYSTEM="clear-linux-project:clear-linux-os:basic:18860.0.0"
+OS_SYSTEM="clear-linux-project:clear-linux-os:containers:18860.0.0"
 
 create_resource_group() {
 	exists=$(az group exists --name kubernetes-clear-linux  | tr -d '[:space:]')
@@ -67,7 +70,7 @@ create_controller_node() {
 		--tags "controller,kubernetes"
 }
 
-creating_worker_nodes() {
+create_worker_nodes() {
 	for i in $(seq 1 "$WORKERS"); do
 		worker_node_name="worker-node-${i}"
 		echo "Creating worker node ${worker_node_name}..."
@@ -86,7 +89,9 @@ creating_worker_nodes() {
 }
 
 create_resource_group
-create_virtual_network
-create_apiserver_ip_address
-create_controller_node
-create_worker_nodes
+#create_virtual_network
+#create_apiserver_ip_address
+#create_controller_node
+#create_worker_nodes
+
+"${SCRIPT_DIR}/provision.sh"

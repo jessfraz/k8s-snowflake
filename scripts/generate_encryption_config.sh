@@ -8,7 +8,7 @@ set -o pipefail
 generate_encryption_config() {
 	ENCRYPTION_KEY=$(head -c 32 /dev/urandom | base64)
 
-	tmpdir=$(mktmp -d)
+	tmpdir=$(mktemp -d)
 	configfile="${tmpdir}/encryption-config.yaml"
 	cat > "$configfile" <<-EOF
 	kind: EncryptionConfig

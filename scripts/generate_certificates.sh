@@ -80,7 +80,7 @@ generate_certificates() {
 	# Google
 	# public_address=$(gcloud compute addresses describe "$CONTROLLER_NODE_NAME" --region "$(gcloud config get-value compute/region)" --format 'value(address)')
 	# Azure
-	public_address=$(az network public-ip list -g "$RESOURCE_GROUP" --query '[?dnsSettings.domainNameLabel=='"${CONTROLLER_NODE_NAME}"'].ipAddress' -o tsv)
+	public_address=$(az network public-ip show -g "$RESOURCE_GROUP" --name "k8s-public-ip" --query 'ipAddress' -o tsv)
 
 	# create the kube-apiserver client certificate
 	# 	outputs: kubernetes-key.pem kubernetes.pem

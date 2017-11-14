@@ -93,6 +93,9 @@ do_etcd(){
 
 	echo "Running install_etcd.sh on controller node..."
 	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" sudo ./install_etcd.sh
+
+	# cleanup the script after install
+	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" rm install_etcd.sh
 }
 
 do_k8s_controller(){
@@ -114,8 +117,22 @@ do_k8s_controller(){
 	echo "Running install_kubernetes_controller.sh on controller node..."
 	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" sudo ./install_kubernetes_controller.sh
 
+	# cleanup the script after install
+	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" rm install_kubernetes_controller.sh
+
 	echo "Copying k8s rbac configs to controller node..."
 	scp -i "$SSH_KEYFILE" "${DIR}/../etc/cluster-role-"*.yaml "${VM_USER}@${controller_ip}":~/
+
+	# wait for kube-apiserver service to come up
+	# TODO: make this not a shitty sleep you goddamn savage
+	sleep 10
+
+	# get the component statuses for sanity
+	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl get componentstatuses
+
+	# create the rbac cluster roles
+	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl apply -f cluster-role-kube-apiserver-to-kubelet.yaml
+	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl apply -f cluster-role-binding-kube-apiserver-to-kubelet.yaml
 }
 
 do_certs

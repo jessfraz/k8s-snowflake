@@ -26,7 +26,7 @@ do_certs(){
 	echo "Certificates successfully generated in ${CERTIFICATE_TMP_DIR}!"
 
 	echo "Copying certs to controller node..."
-	scp "${CERTIFICATE_TMP_DIR}/ca.pem" "${CERTIFICATE_TMP_DIR}/ca-key.pem" "${CERTIFICATE_TMP_DIR}/kubernetes.pem" "${CERTIFICATE_TMP_DIR}/kubernetes-key.pem" "${VM_USER}@${controller_ip}":~/
+	scp -i "$SSH_KEYFILE" "${CERTIFICATE_TMP_DIR}/ca.pem" "${CERTIFICATE_TMP_DIR}/ca-key.pem" "${CERTIFICATE_TMP_DIR}/kubernetes.pem" "${CERTIFICATE_TMP_DIR}/kubernetes-key.pem" "${VM_USER}@${controller_ip}":~/
 
 	echo "Copying certs to worker nodes..."
 	for i in $(seq 1 "$WORKERS"); do
@@ -40,7 +40,7 @@ do_certs(){
 		external_ip=$(az vm show -g "$RESOURCE_GROUP" -n "$instance" --show-details --query 'publicIps' -o tsv | tr -d '[:space:]')
 
 		# Copy the certificates
-		scp "${CERTIFICATE_TMP_DIR}/ca.pem" "${CERTIFICATE_TMP_DIR}/${instance}-key.pem" "${CERTIFICATE_TMP_DIR}/${instance}.pem" "${VM_USER}@${external_ip}":~/
+		scp -i "$SSH_KEYFILE" "${CERTIFICATE_TMP_DIR}/ca.pem" "${CERTIFICATE_TMP_DIR}/${instance}-key.pem" "${CERTIFICATE_TMP_DIR}/${instance}.pem" "${VM_USER}@${external_ip}":~/
 	done
 }
 
@@ -63,7 +63,7 @@ do_kubeconfigs(){
 		external_ip=$(az vm show -g "$RESOURCE_GROUP" -n "$instance" --show-details --query 'publicIps' -o tsv | tr -d '[:space:]')
 
 		# Copy the kubeconfigs
-		scp "${KUBECONFIG_TMP_DIR}/${instance}.kubeconfig" "${KUBECONFIG_TMP_DIR}/kube-proxy.kubeconfig" "${VM_USER}@${external_ip}":~/
+		scp -i "$SSH_KEYFILE" "${KUBECONFIG_TMP_DIR}/${instance}.kubeconfig" "${KUBECONFIG_TMP_DIR}/kube-proxy.kubeconfig" "${VM_USER}@${external_ip}":~/
 	done
 }
 
@@ -75,47 +75,46 @@ do_encryption_config(){
 	echo "Encryption config successfully generated in ${ENCRYPTION_CONFIG}!"
 
 	echo "Copying encryption config to controller node..."
-	scp "$ENCRYPTION_CONFIG" "${VM_USER}@${controller_ip}":~/
+	scp -i "$SSH_KEYFILE" "$ENCRYPTION_CONFIG" "${VM_USER}@${controller_ip}":~/
 }
 
 do_etcd(){
 	echo "Moving certficates to correct location for etcd on controller node..."
-	ssh "${VM_USER}@${controller_ip}" sudo mkdir -p /etc/etcd/
-	ssh "${VM_USER}@${controller_ip}" sudo mv ca.pem kubernetes-key.pem kubernetes.pem /etc/etcd/
+	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" sudo mkdir -p /etc/etcd/
+	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" sudo mv ca.pem kubernetes-key.pem kubernetes.pem /etc/etcd/
 
 	echo "Copying etcd.service to controller node..."
-	scp "${DIR}/../etc/systemd/system/etcd.service" "${VM_USER}@${controller_ip}":~/
-	ssh "${VM_USER}@${controller_ip}" sudo mkdir -p /etc/systemd/system/
-	ssh "${VM_USER}@${controller_ip}" sudo mv etcd.service /etc/systemd/system/
+	scp -i "$SSH_KEYFILE" "${DIR}/../etc/systemd/system/etcd.service" "${VM_USER}@${controller_ip}":~/
+	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" sudo mkdir -p /etc/systemd/system/
+	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" sudo mv etcd.service /etc/systemd/system/
 
 	echo "Copying etcd install script to controller node..."
-	scp "${DIR}/install_etcd.sh" "${VM_USER}@${controller_ip}":~/
+	scp -i "$SSH_KEYFILE" "${DIR}/install_etcd.sh" "${VM_USER}@${controller_ip}":~/
 
 	echo "Running install_etcd.sh on controller node..."
-	ssh "${VM_USER}@${controller_ip}" sudo ./install_etcd.sh
+	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" sudo ./install_etcd.sh
 }
 
 do_k8s_controller(){
 	echo "Moving certficates to correct location for k8s on controller node..."
-	ssh "${VM_USER}@${controller_ip}" sudo mkdir -p /var/lib/kubernetes/
-	ssh "${VM_USER}@${controller_ip}" sudo mv ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem encryption-config.yaml /var/lib/kubernetes/
+	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" sudo mkdir -p /var/lib/kubernetes/
+	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" sudo mv ca-key.pem encryption-config.yaml /var/lib/kubernetes/
 
 	services=( kube-apiserver.service kube-scheduler.service kube-controller-manager.service )
 	for service in "${services[@]}"; do
 		echo "Copying $service to controller node..."
-		scp "${DIR}/../etc/systemd/system/${service}" "${VM_USER}@${controller_ip}":~/
-		ssh "${VM_USER}@${controller_ip}" sudo mkdir -p /etc/systemd/system/
-		ssh "${VM_USER}@${controller_ip}" sudo mv "$service" /etc/systemd/system/
+		scp -i "$SSH_KEYFILE" "${DIR}/../etc/systemd/system/${service}" "${VM_USER}@${controller_ip}":~/
+		ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" sudo mkdir -p /etc/systemd/system/
+		ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" sudo mv "$service" /etc/systemd/system/
 	done
 
 	echo "Copying k8s controller install script to controller node..."
-	scp "${DIR}/install_kubernetes_controller.sh" "${VM_USER}@${controller_ip}":~/
+	scp -i "$SSH_KEYFILE" "${DIR}/install_kubernetes_controller.sh" "${VM_USER}@${controller_ip}":~/
 
 	echo "Running install_kubernetes_controller.sh on controller node..."
-	ssh "${VM_USER}@${controller_ip}" sudo ./install_kubernetes_controller.sh
+	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" sudo ./install_kubernetes_controller.sh
 }
 
-# TODO: uncomment these
 do_certs
 do_kubeconfigs
 do_encryption_config

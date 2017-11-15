@@ -103,7 +103,7 @@ The script automatically sets up an `admin` user with kubeconfig locally so you
 should be able to just run `kubectl` after!
 
 > **NOTE:** if you want to change the number of nodes, etc checkout the
-> environment variables at the top of [`azure/setup.sh`](azure/setup.sh).
+> environment variables at the top of [`gcloud/setup.sh`](gcloud/setup.sh).
 
 ## Acknowledgements
 

@@ -104,7 +104,7 @@ generate_certificates() {
 	if [[ "$CLOUD_PROVIDER" == "google" ]]; then
 		public_address=$(gcloud compute addresses describe "$PUBLIC_IP_NAME" --region "$REGION" --format 'value(address)')
 		# get the controller internal ips
-		internal_ip=$(gcloud compute instances describe "$CONTROLLER_NODE_NAME" --format 'value(networkInterfaces[0].networkIP)')
+		internal_ips=$(gcloud compute instances describe "$CONTROLLER_NODE_NAME" --format 'value(networkInterfaces[0].networkIP)')
 	fi
 	# Azure
 	if [[ "$CLOUD_PROVIDER" == "azure" ]]; then

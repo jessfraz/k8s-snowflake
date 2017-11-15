@@ -11,7 +11,8 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # this is cloud provider specific
 # Google Cloud
 if [[ "$CLOUD_PROVIDER" == "google" ]]; then
-	controller_ip=$(gcloud compute addresses describe "$PUBLIC_IP_NAME" --region "$REGION" --format 'value(address)')
+	controller_ip=$(gcloud compute instances describe "$CONTROLLER_NODE_NAME" --format 'value(networkInterfaces[0].accessConfigs[0].natIP)')
+	#controller_ip=$(gcloud compute addresses describe "$PUBLIC_IP_NAME" --region "$REGION" --format 'value(address)')
 fi
 # Azure
 if [[ "$CLOUD_PROVIDER" == "azure" ]]; then

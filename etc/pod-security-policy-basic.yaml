@@ -3,6 +3,7 @@ kind: PodSecurityPolicy
 metadata:
   name: basic
 spec:
+  privileged: false
   allowPrivilegeEscalation: false
   defaultAllowPrivilegeEscalation: false
   seLinux:
@@ -17,3 +18,6 @@ spec:
   - '*'
   allowedCapabilities:
   - '*'
+  hostPorts:
+  - min: 8000
+    max: 9999

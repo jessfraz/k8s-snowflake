@@ -1,5 +1,7 @@
 # k8s-snowflake
 
+[![Build Status](https://travis-ci.org/jessfraz/k8s-snowflake.svg?branch=master)](https://travis-ci.org/jessfraz/k8s-snowflake)
+
 Configs and scripts for bootstrapping an opinionated Kubernetes cluster anywhere.
 
 Except it's my _snowflake opinionated k8s distro_ :)

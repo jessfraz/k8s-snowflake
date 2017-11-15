@@ -18,11 +18,15 @@ install_etcd() {
 	mkdir -p /etc/etcd /var/lib/etcd
 
 	# get the internal ip
-	# this is different per cloud service
-	# Google
-	# internal_ip=$(curl -s -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip)
+	# this is cloud provider specific
+	# Google Cloud
+	if [[ "$CLOUD_PROVIDER" == "google" ]]; then
+		internal_ip=$(curl -s -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip)
+	fi
 	# Azure
-	internal_ip=$(curl -H "Metadata:true" "http://169.254.169.254/metadata/instance/network/interface/0/ipv4/ipAddress/0/privateIpAddress?api-version=2017-08-01&format=text")
+	if [[ "$CLOUD_PROVIDER" == "azure" ]]; then
+		internal_ip=$(curl -H "Metadata:true" "http://169.254.169.254/metadata/instance/network/interface/0/ipv4/ipAddress/0/privateIpAddress?api-version=2017-08-01&format=text")
+	fi
 
 	# each etcd member must have a unique name within an etcd cluster
 	# set the etcd name to match the hostname of the current compute instance

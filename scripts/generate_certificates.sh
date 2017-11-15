@@ -57,17 +57,25 @@ generate_certificates() {
 
 		# get the external ip for the instance
 		# this is cloud provider specific
-		# Google
-		# external_ip=$(gcloud compute instances describe "$instance" --format 'value(networkInterfaces[0].accessConfigs[0].natIP)')
+		# Google Cloud
+		if [[ "$CLOUD_PROVIDER" == "google" ]]; then
+			external_ip=$(gcloud compute instances describe "$instance" --format 'value(networkInterfaces[0].accessConfigs[0].natIP)')
+		fi
 		# Azure
-		external_ip=$(az vm show -g "$RESOURCE_GROUP" -n "$instance" --show-details --query 'publicIps' -o tsv | tr -d '[:space:]')
+		if [[ "$CLOUD_PROVIDER" == "azure" ]]; then
+			external_ip=$(az vm show -g "$RESOURCE_GROUP" -n "$instance" --show-details --query 'publicIps' -o tsv | tr -d '[:space:]')
+		fi
 
 		# get the internal ip for the instance
 		# this is cloud provider specific
-		# Google
-		# internal_ip=$(gcloud compute instances describe "$instance" --format 'value(networkInterfaces[0].networkIP)')
+		# Google Cloud
+		if [[ "$CLOUD_PROVIDER" == "google" ]]; then
+			internal_ip=$(gcloud compute instances describe "$instance" --format 'value(networkInterfaces[0].networkIP)')
+		fi
 		# Azure
-		internal_ip=$(az vm show -g "$RESOURCE_GROUP" -n "$instance" --show-details --query 'privateIps' -o tsv | tr -d '[:space:]')
+		if [[ "$CLOUD_PROVIDER" == "azure" ]]; then
+			internal_ip=$(az vm show -g "$RESOURCE_GROUP" -n "$instance" --show-details --query 'privateIps' -o tsv | tr -d '[:space:]')
+		fi
 
 		# generate the certificates
 		echo "Generating certificate for ${instance}..."
@@ -92,12 +100,18 @@ generate_certificates() {
 
 	# get the controller node public ip address
 	# this is cloud provider specific
-	# Google
-	# public_address=$(gcloud compute addresses describe "$CONTROLLER_NODE_NAME" --region "$(gcloud config get-value compute/region)" --format 'value(address)')
+	# Google Cloud
+	if [[ "$CLOUD_PROVIDER" == "google" ]]; then
+		public_address=$(gcloud compute addresses describe "$PUBLIC_IP_NAME" --region "$REGION" --format 'value(address)')
+		# get the controller internal ips
+		internal_ip=$(gcloud compute instances describe "$CONTROLLER_NODE_NAME" --format 'value(networkInterfaces[0].networkIP)')
+	fi
 	# Azure
-	public_address=$(az network public-ip show -g "$RESOURCE_GROUP" --name "k8s-public-ip" --query 'ipAddress' -o tsv | tr -d '[:space:]')
-	# get the controller internal ips
-	internal_ips=$(az vm list-ip-addresses -g "$RESOURCE_GROUP" -o table | grep controller | awk '{print $3}' | tr -d '[:space:]' | tr '\n' ',' | sed 's/,*$//g')
+	if [[ "$CLOUD_PROVIDER" == "azure" ]]; then
+		public_address=$(az network public-ip show -g "$RESOURCE_GROUP" --name "$PUBLIC_IP_NAME" --query 'ipAddress' -o tsv | tr -d '[:space:]')
+		# get the controller internal ips
+		internal_ips=$(az vm list-ip-addresses -g "$RESOURCE_GROUP" -o table | grep controller | awk '{print $3}' | tr -d '[:space:]' | tr '\n' ',' | sed 's/,*$//g')
+	fi
 
 	# create the kube-apiserver client certificate
 	# 	outputs: kubernetes-key.pem kubernetes.pem

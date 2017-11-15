@@ -9,10 +9,14 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # get the controller node public ip address
 # this is cloud provider specific
-# Google
-# public_address=$(gcloud compute addresses describe "$CONTROLLER_NODE_NAME" --region "$(gcloud config get-value compute/region)" --format 'value(address)')
+# Google Cloud
+if [[ "$CLOUD_PROVIDER" == "google" ]]; then
+	controller_ip=$(gcloud compute addresses describe "$PUBLIC_IP_NAME" --region "$REGION" --format 'value(address)')
+fi
 # Azure
-controller_ip=$(az network public-ip show -g "$RESOURCE_GROUP" --name "k8s-public-ip" --query 'ipAddress' -o tsv | tr -d '[:space:]')
+if [[ "$CLOUD_PROVIDER" == "azure" ]]; then
+	controller_ip=$(az network public-ip show -g "$RESOURCE_GROUP" --name "$PUBLIC_IP_NAME" --query 'ipAddress' -o tsv | tr -d '[:space:]')
+fi
 
 echo "Provisioning kubernetes cluster for resource group $RESOURCE_GROUP..."
 
@@ -34,10 +38,14 @@ do_certs(){
 
 		# get the external ip for the instance
 		# this is cloud provider specific
-		# Google
-		# external_ip=$(gcloud compute instances describe "$instance" --format 'value(networkInterfaces[0].accessConfigs[0].natIP)')
+		# Google Cloud
+		if [[ "$CLOUD_PROVIDER" == "google" ]]; then
+			external_ip=$(gcloud compute instances describe "$instance" --format 'value(networkInterfaces[0].accessConfigs[0].natIP)')
+		fi
 		# Azure
-		external_ip=$(az vm show -g "$RESOURCE_GROUP" -n "$instance" --show-details --query 'publicIps' -o tsv | tr -d '[:space:]')
+		if [[ "$CLOUD_PROVIDER" == "azure" ]]; then
+			external_ip=$(az vm show -g "$RESOURCE_GROUP" -n "$instance" --show-details --query 'publicIps' -o tsv | tr -d '[:space:]')
+		fi
 
 		# Copy the certificates
 		scp -i "$SSH_KEYFILE" "${CERTIFICATE_TMP_DIR}/ca.pem" "${CERTIFICATE_TMP_DIR}/${instance}-key.pem" "${CERTIFICATE_TMP_DIR}/${instance}.pem" "${VM_USER}@${external_ip}":~/
@@ -57,10 +65,14 @@ do_kubeconfigs(){
 
 		# get the external ip for the instance
 		# this is cloud provider specific
-		# Google
-		# external_ip=$(gcloud compute instances describe "$instance" --format 'value(networkInterfaces[0].accessConfigs[0].natIP)')
+		# Google Cloud
+		if [[ "$CLOUD_PROVIDER" == "google" ]]; then
+			external_ip=$(gcloud compute instances describe "$instance" --format 'value(networkInterfaces[0].accessConfigs[0].natIP)')
+		fi
 		# Azure
-		external_ip=$(az vm show -g "$RESOURCE_GROUP" -n "$instance" --show-details --query 'publicIps' -o tsv | tr -d '[:space:]')
+		if [[ "$CLOUD_PROVIDER" == "azure" ]]; then
+			external_ip=$(az vm show -g "$RESOURCE_GROUP" -n "$instance" --show-details --query 'publicIps' -o tsv | tr -d '[:space:]')
+		fi
 
 		# Copy the kubeconfigs
 		scp -i "$SSH_KEYFILE" "${KUBECONFIG_TMP_DIR}/${instance}.kubeconfig" "${KUBECONFIG_TMP_DIR}/kube-proxy.kubeconfig" "${VM_USER}@${external_ip}":~/
@@ -172,10 +184,14 @@ do_k8s_worker(){
 
 		# get the external ip for the instance
 		# this is cloud provider specific
-		# Google
-		# external_ip=$(gcloud compute instances describe "$instance" --format 'value(networkInterfaces[0].accessConfigs[0].natIP)')
+		# Google Cloud
+		if [[ "$CLOUD_PROVIDER" == "google" ]]; then
+			external_ip=$(gcloud compute instances describe "$instance" --format 'value(networkInterfaces[0].accessConfigs[0].natIP)')
+		fi
 		# Azure
-		external_ip=$(az vm show -g "$RESOURCE_GROUP" -n "$instance" --show-details --query 'publicIps' -o tsv | tr -d '[:space:]')
+		if [[ "$CLOUD_PROVIDER" == "azure" ]]; then
+			external_ip=$(az vm show -g "$RESOURCE_GROUP" -n "$instance" --show-details --query 'publicIps' -o tsv | tr -d '[:space:]')
+		fi
 
 		echo "Moving certficates to correct location for k8s on ${instance}..."
 		ssh -i "$SSH_KEYFILE" "${VM_USER}@${external_ip}" sudo mkdir -p /var/lib/kubelet/

@@ -8,6 +8,8 @@
 set -e
 set -o pipefail
 
+export CLOUD_PROVIDER="azure"
+
 # Check if we have the azure command line.
 command -v az >/dev/null 2>&1 || { echo >&2 "This script requires the azure command line tool, az. Aborting."; exit 1; }
 
@@ -28,7 +30,7 @@ if [[ ! -f "$SSH_KEYFILE" ]]; then
 fi
 SSH_KEYFILE_VALUE=$(cat "${SSH_KEYFILE}.pub")
 
-PUBLIC_IP_NAME="k8s-public-ip"
+export PUBLIC_IP_NAME="k8s-public-ip"
 VIRTUAL_NETWORK_NAME="k8s-virtual-network"
 
 VM_SIZE="Standard_D2s_v3"
@@ -105,7 +107,6 @@ create_worker_nodes() {
 	for i in $(seq 0 "$WORKERS"); do
 		worker_node_name="worker-node-${i}"
 		echo "Creating worker node ${worker_node_name}..."
-
 
 		az vm create --name "$worker_node_name" --resource-group "$RESOURCE_GROUP" \
 			--public-ip-address-allocation="dynamic" \

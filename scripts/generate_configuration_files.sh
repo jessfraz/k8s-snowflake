@@ -10,10 +10,14 @@ generate_configuration_files() {
 
 	# get the controller node public ip address
 	# this is cloud provider specific
-	# Google
-	# internal_ip=$(gcloud compute addresses describe "$CONTROLLER_NODE_NAME" --region "$(gcloud config get-value compute/region)" --format 'value(address)')
+	# Google Cloud
+	if [[ "$CLOUD_PROVIDER" == "google" ]]; then
+		internal_ip=$(gcloud compute addresses describe "$PUBLIC_IP_NAME" --region "$REGION" --format 'value(address)')
+	fi
 	# Azure
-	internal_ip=$(az vm list-ip-addresses -g "$RESOURCE_GROUP" -o table | grep controller | awk '{print $3}' | tr -d '[:space:]' | tr '\n' ',' | sed 's/,*$//g')
+	if [[ "$CLOUD_PROVIDER" == "azure" ]]; then
+		internal_ip=$(az vm list-ip-addresses -g "$RESOURCE_GROUP" -o table | grep controller | awk '{print $3}' | tr -d '[:space:]' | tr '\n' ',' | sed 's/,*$//g')
+	fi
 
 	# Generate each workers kubeconfig
 	# 	outputs: worker-0.kubeconfig worker-1.kubeconfig worker-2.kubeconfig

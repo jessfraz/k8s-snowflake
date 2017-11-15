@@ -74,6 +74,11 @@ configure() {
 }
 
 install_kubernetes_worker(){
+	# TODO: remove this when you switch to container os on google cloud
+	if [[ "$CLOUD_PROVIDER" == "google" ]]; then
+		sudo apt-get -y install socat
+	fi
+
 	install_cni
 	install_cri_containerd
 	install_kubernetes_components

@@ -63,7 +63,9 @@ runtime.
 The cluster uses [`cilium`](https://github.com/cilium/cilium)
 as a networking plugin. I like cilium because it uses BPF and XDP and their
 design is something I could wrap my head around. You should checkout their repo
-it's one of the cleanest implementations I have seen.
+it's one of the cleanest implementations I have seen. You should checkout their
+really sweet
+[BPF and XDP Reference Guide](https://cilium.readthedocs.io/en/latest/bpf/#) too!
 
 ## Azure
 

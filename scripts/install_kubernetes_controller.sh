@@ -23,11 +23,9 @@ install_kubernetes_controller() {
 	# get the internal ip
 	# this is cloud provider specific
 	# Google Cloud
-	if [[ "$CLOUD_PROVIDER" == "google" ]]; then
-		internal_ip=$(curl -s -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip)
-	fi
+	internal_ip=$(curl -s -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip)
 	# Azure
-	if [[ "$CLOUD_PROVIDER" == "azure" ]]; then
+	if [[ -z "$internal_ip" ]]; then
 		internal_ip=$(curl -H "Metadata:true" "http://169.254.169.254/metadata/instance/network/interface/0/ipv4/ipAddress/0/privateIpAddress?api-version=2017-08-01&format=text")
 	fi
 

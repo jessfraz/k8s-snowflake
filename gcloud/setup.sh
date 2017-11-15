@@ -22,7 +22,7 @@ export ZONE=${ZONE:-us-east1-c}
 export CONTROLLER_NODE_NAME=${CONTROLLER_NODE_NAME:-controller-node}
 export SSH_KEYFILE=${SSH_KEYFILE:-${HOME}/.ssh/id_ed25519}
 export WORKERS=${WORKERS:-2}
-export VM_USER=${VM_USER:-azureuser}
+export VM_USER=${VM_USER:-jessfraz}
 
 if [[ ! -f "$SSH_KEYFILE" ]]; then
 	echo >&2 "SSH_KEYFILE $SSH_KEYFILE does not exist."

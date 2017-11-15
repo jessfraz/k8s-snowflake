@@ -163,7 +163,7 @@ do_k8s_controller(){
 	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl apply -f kube-dns.yaml
 
 	# create cilium
-	# ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl apply -f cilium.yaml
+	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl apply -f cilium.yaml
 }
 
 do_k8s_worker(){

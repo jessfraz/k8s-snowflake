@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    container.seccomp.security.alpha.kubernetes.io/nonewprivs: docker/default
+  name: nonewprivs
+spec:
+  restartPolicy: Never
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1337
+  containers:
+    - image: gcr.io/kubernetes-e2e-test-image/nonewprivs:1.0
+      name: nonewprivs

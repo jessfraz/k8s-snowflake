@@ -17,7 +17,7 @@ generate_configuration_files() {
 
 	# Generate each workers kubeconfig
 	# 	outputs: worker-0.kubeconfig worker-1.kubeconfig worker-2.kubeconfig
-	for i in $(seq 1 "$WORKERS"); do
+	for i in $(seq 0 "$WORKERS"); do
 		instance="worker-node-${i}"
 		kubectl config set-cluster "$RESOURCE_GROUP" \
 			--certificate-authority="${CERTIFICATE_TMP_DIR}/ca.pem" \

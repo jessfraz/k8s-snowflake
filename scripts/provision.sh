@@ -29,7 +29,7 @@ do_certs(){
 	scp -i "$SSH_KEYFILE" "${CERTIFICATE_TMP_DIR}/ca.pem" "${CERTIFICATE_TMP_DIR}/ca-key.pem" "${CERTIFICATE_TMP_DIR}/kubernetes.pem" "${CERTIFICATE_TMP_DIR}/kubernetes-key.pem" "${VM_USER}@${controller_ip}":~/
 
 	echo "Copying certs to worker nodes..."
-	for i in $(seq 1 "$WORKERS"); do
+	for i in $(seq 0 "$WORKERS"); do
 		instance="worker-node-${i}"
 
 		# get the external ip for the instance
@@ -52,7 +52,7 @@ do_kubeconfigs(){
 	echo "Kubeconfigs successfully generated in ${KUBECONFIG_TMP_DIR}!"
 
 	echo "Copying kubeconfigs to worker nodes..."
-	for i in $(seq 1 "$WORKERS"); do
+	for i in $(seq 0 "$WORKERS"); do
 		instance="worker-node-${i}"
 
 		# get the external ip for the instance
@@ -123,8 +123,24 @@ do_k8s_controller(){
 	echo "Copying k8s rbac configs to controller node..."
 	scp -i "$SSH_KEYFILE" "${DIR}/../etc/cluster-role-"*.yaml "${VM_USER}@${controller_ip}":~/
 
-	echo "Copying k8s pod security policy configs to controller node..."
-	scp -i "$SSH_KEYFILE" "${DIR}/../etc/pod-security-policy-"*.yaml "${VM_USER}@${controller_ip}":~/
+	echo "Copying k8s pod configs to controller node..."
+	scp -i "$SSH_KEYFILE" "${DIR}/../etc/pod-"*.yaml "${VM_USER}@${controller_ip}":~/
+
+	echo "Copying k8s kube-dns config to controller node..."
+	scp -i "$SSH_KEYFILE" "${DIR}/../etc/kube-dns.yaml" "${VM_USER}@${controller_ip}":~/
+
+	# configure cilium to use etcd tls
+	tmpd=$(mktemp -d)
+	ciliumconfig="${tmpd}/cilium.yaml"
+	sed "s#ETCD_CA#$(base64 -w 0 "${CERTIFICATE_TMP_DIR}/ca.pem")#" "${DIR}/../etc/cilium.yaml" > "$ciliumconfig"
+	sed -i "s#ETCD_CLIENT_KEY#$(base64 -w 0 "${CERTIFICATE_TMP_DIR}/kubernetes-key.pem")#" "$ciliumconfig"
+	sed -i "s#ETCD_CLIENT_CERT#$(base64 -w 0 "${CERTIFICATE_TMP_DIR}/kubernetes.pem")#" "$ciliumconfig"
+
+	echo "Copying k8s cilium config to controller node..."
+	scp -i "$SSH_KEYFILE" "$ciliumconfig" "${VM_USER}@${controller_ip}":~/
+
+	# cleanup
+	rm -rf "$tmpd"
 
 	# wait for kube-apiserver service to come up
 	# TODO: make this not a shitty sleep you goddamn savage
@@ -137,12 +153,18 @@ do_k8s_controller(){
 	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl apply -f cluster-role-kube-apiserver-to-kubelet.yaml
 	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl apply -f cluster-role-binding-kube-apiserver-to-kubelet.yaml
 
+	# create kube-dns
+	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl apply -f kube-dns.yaml
+
+	# create cilium
+	# ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl apply -f cilium.yaml
+
 	# create the pod security policy
-	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl apply -f pod-security-policy-basic.yaml
+	# ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl apply -f pod-security-policy-basic.yaml
 }
 
 do_k8s_worker(){
-	for i in $(seq 1 "$WORKERS"); do
+	for i in $(seq 0 "$WORKERS"); do
 		instance="worker-node-${i}"
 
 		# get the external ip for the instance

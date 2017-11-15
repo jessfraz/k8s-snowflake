@@ -50,7 +50,7 @@ generate_certificates() {
 
 	# create the kubelet client certificates
 	# 	outputs: worker-0-key.pem worker-0.pem worker-1-key.pem worker-1.pem...
-	for i in $(seq 1 "$WORKERS"); do
+	for i in $(seq 0 "$WORKERS"); do
 		instance="worker-node-${i}"
 		instance_csr_config="${tmpdir}/${instance}-csr.json"
 		sed "s/INSTANCE/${instance}/g" "${CA_CONFIG_DIR}/instance-csr.json" > "$instance_csr_config"

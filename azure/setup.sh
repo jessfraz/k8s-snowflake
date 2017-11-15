@@ -18,7 +18,7 @@ export RESOURCE_GROUP=${RESOURCE_GROUP:-kubernetes-clear-linux}
 export REGION=${REGION:-eastus}
 export CONTROLLER_NODE_NAME=${CONTROLLER_NODE_NAME:-controller-node}
 export SSH_KEYFILE=${SSH_KEYFILE:-${HOME}/.ssh/id_rsa}
-export WORKERS=${WORKERS:-3}
+export WORKERS=${WORKERS:-2}
 export VM_USER=${VM_USER:-azureuser}
 
 if [[ ! -f "$SSH_KEYFILE" ]]; then
@@ -79,10 +79,23 @@ create_controller_node() {
 		--source-port-range "*" \
 		--destination-address-prefix "*" \
 		--destination-port-range 6443
+
+	# enable ip forwarding
+	# enabling IP forwarding for a network interface causes Azure not to
+	# check the source/destination IP address.
+	# if you don't enable this setting, traffic destined for an IP address
+	# other than the NIC that receives it, is dropped by Azure.
+	az network nic update --resource-group "$RESOURCE_GROUP" \
+		--name "${CONTROLLER_NODE_NAME}VMNic" \
+		--ip-forwarding true
+
+	# create the route table
+	az network route-table create --resource-group "$RESOURCE_GROUP" \
+		--name "k8s-route-table"
 }
 
 create_worker_nodes() {
-	for i in $(seq 1 "$WORKERS"); do
+	for i in $(seq 0 "$WORKERS"); do
 		worker_node_name="worker-node-${i}"
 		echo "Creating worker node ${worker_node_name}..."
 
@@ -96,6 +109,30 @@ create_worker_nodes() {
 			--vnet-name "$VIRTUAL_NETWORK_NAME" \
 			--subnet "k8s-subnet" \
 			--tags "worker,kubernetes"
+
+		# enable ip forwarding
+		# enabling IP forwarding for a network interface causes Azure not to
+		# check the source/destination IP address.
+		# if you don't enable this setting, traffic destined for an IP address
+		# other than the NIC that receives it, is dropped by Azure.
+		az network nic update --resource-group "$RESOURCE_GROUP" \
+			--name "${worker_node_name}VMNic" \
+			--ip-forwarding true
+
+		# get the internal ip for the instance
+		# this is cloud provider specific
+		# Google
+		# internal_ip=$(gcloud compute instances describe "$instance" --format 'value(networkInterfaces[0].networkIP)')
+		# Azure
+		internal_ip=$(az vm show -g "$RESOURCE_GROUP" -n "$worker_node_name" --show-details --query 'privateIps' -o tsv | tr -d '[:space:]')
+
+		# create the routes
+		az network route-table route create --resource-group "$RESOURCE_GROUP" \
+			--route-table-name "k8s-route-table" \
+			--address-prefix "10.200.${i}.0/24" \
+			--name "worker-route-${i}" \
+			--next-hop-type VirtualAppliance \
+			--next-hop-ip-address "$internal_ip"
 	done
 }
 

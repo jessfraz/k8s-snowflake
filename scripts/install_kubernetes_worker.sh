@@ -51,17 +51,11 @@ install_kubernetes_components() {
 }
 
 configure() {
-	# get the pod cidr range
-	# this is different per cloud service
-	# Google
-	# pod_cidr=$(curl -s -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/attributes/pod-cidr)
-	# Azure
-	address=$(curl -H "Metadata:true" "http://169.254.169.254/metadata/instance/network/interface/0/ipv4/subnet/0/address?api-version=2017-08-01&format=text")
-	prefix=$(curl -H "Metadata:true" "http://169.254.169.254/metadata/instance/network/interface/0/ipv4/subnet/0/prefix?api-version=2017-08-01&format=text")
-	pod_cidr="${address}/${prefix}"
-
 	# get the hostname
 	hostname=$(hostname -s)
+	# get the worker number
+	worker=$(echo "$hostname" | grep -Eo '[0-9]+$')
+	pod_cidr="10.200.${worker}.0/24"
 
 	# update the cni bridge conf file
 	sed -i "s#POD_CIDR#${pod_cidr}#g" /etc/cni/net.d/10-bridge.conf

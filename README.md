@@ -6,8 +6,7 @@ Configs and scripts for bootstrapping an opinionated Kubernetes cluster anywhere
 
 Except it's my _snowflake opinionated k8s distro_ :)
 
-> **NOTE:** current support is only for Azure. There is some Google Cloud stuff
-> with todos...
+> **NOTE:** current support is only for Azure and Google Cloud.
 
 ## Provisioning
 
@@ -78,6 +77,26 @@ To provision your cluster, clone this repo and run:
 
 ```console
 $ ./azure/setup.sh
+```
+
+The script automatically sets up an `admin` user with kubeconfig locally so you
+should be able to just run `kubectl` after!
+
+> **NOTE:** if you want to change the number of nodes, etc checkout the
+> environment variables at the top of [`azure/setup.sh`](azure/setup.sh).
+
+## Google Cloud
+
+Make sure you have the `gcloud` tool installed. You can find instructions on
+downloading that
+[here](https://cloud.google.com/sdk/downloads).
+
+Make sure you are logged in.
+
+To provision your cluster, clone this repo and run:
+
+```console
+$ VM_USER="your_ssh_user" ./gcloud/setup.sh
 ```
 
 The script automatically sets up an `admin` user with kubeconfig locally so you

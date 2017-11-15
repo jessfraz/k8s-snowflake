@@ -18,6 +18,10 @@ generate_configuration_files() {
 	if [[ "$CLOUD_PROVIDER" == "azure" ]]; then
 		internal_ip=$(az vm list-ip-addresses -g "$RESOURCE_GROUP" -o table | grep controller | awk '{print $3}' | tr -d '[:space:]' | tr '\n' ',' | sed 's/,*$//g')
 	fi
+	# Vagrant
+	if [[ "$CLOUD_PROVIDER" == "vagrant" ]]; then
+		internal_ip=172.17.8.100
+	fi
 
 	# Generate each workers kubeconfig
 	# 	outputs: worker-0.kubeconfig worker-1.kubeconfig worker-2.kubeconfig

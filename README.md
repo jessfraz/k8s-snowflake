@@ -46,7 +46,7 @@ components like `cilium` to run privileged pods.
 There are two cluster role bindings created (which grant permissions across
 namespaces):
 
-- `privileged`: cannot create privileged pods, cannot escalate privileges,
+- `restricted`: cannot create privileged pods, cannot escalate privileges,
   cannot run containers as root, cannot use the host network, IPC or PID
   namespace
 - `privileged`: can create pods that are privileged and use the privileged pod

@@ -98,6 +98,7 @@ spec:
           - "--kvstore-opt"
           - "etcd.config=/var/lib/etcd-config/etcd.config"
           - "--disable-ipv4=$(DISABLE_IPV4)"
+          - "--k8s-kubeconfig-path=/host/var/lib/kubelet/kubeconfig"
         lifecycle:
           postStart:
             exec:
@@ -146,6 +147,9 @@ spec:
             mountPath: /host/opt/cni/bin
           - name: etc-cni-netd
             mountPath: /host/etc/cni/net.d
+          - name: var-lib-kubelet
+            mountPath: /host/var/lib/kubelet
+            readOnly: true
           - name: docker-socket
             mountPath: /var/run/docker.sock
             readOnly: true
@@ -183,6 +187,10 @@ spec:
         - name: etc-cni-netd
           hostPath:
               path: /etc/cni/net.d
+          # to read the kubeconfig
+        - name: var-lib-kubelet
+          hostPath:
+            path: /var/lib/kubelet
           # To read the etcd config stored in config maps
         - name: etcd-config-path
           configMap:

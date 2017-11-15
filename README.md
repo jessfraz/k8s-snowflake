@@ -40,8 +40,7 @@ privileged pods and does not allow privilege escalation which is through the lin
 `no_new_privs` flag.
 
 There is also a [permissive pod security
-policy](etc/pod-security-policy-permissive.yaml) which enables system
-components like `cilium` to run privileged pods.
+policy](etc/pod-security-policy-permissive.yaml).
 
 There are two cluster role bindings created (which grant permissions across
 namespaces):
@@ -61,7 +60,9 @@ runtime.
 ### Networking
 
 The cluster uses [`cilium`](https://github.com/cilium/cilium)
-as a networking plugin.
+as a networking plugin. I like cilium because it uses BPF and XDP and their
+design is something I could wrap my head around. You should checkout their repo
+it's one of the cleanest implementations I have seen.
 
 ## Azure
 

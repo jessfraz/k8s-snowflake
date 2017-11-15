@@ -20,7 +20,7 @@ export RESOURCE_GROUP=${RESOURCE_GROUP:-kubernetes-clear-linux-snowflake}
 export REGION=${REGION:-us-east1}
 export ZONE=${ZONE:-us-east1-c}
 export CONTROLLER_NODE_NAME=${CONTROLLER_NODE_NAME:-controller-node}
-export SSH_KEYFILE=${SSH_KEYFILE:-${HOME}/.ssh/id_rsa}
+export SSH_KEYFILE=${SSH_KEYFILE:-${HOME}/.ssh/id_ed25519}
 export WORKERS=${WORKERS:-2}
 export VM_USER=${VM_USER:-azureuser}
 

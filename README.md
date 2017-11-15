@@ -17,19 +17,19 @@ base up.
 
 Every node uses [Intel's Clear Linux](https://clearlinux.org/) as the base.
 This is for reasons of security and performance. If you would like to learn
-more on that you should click the link previously to their site.
+more on that you should click the link to their site.
 
 Kubernetes is installed with [`RBAC`](https://kubernetes.io/docs/admin/authorization/rbac/)
 and is set up with an admin user.
 
 There is a [basic pod security policy](etc/pod-security-policy-basic.yaml)
 which does not allow running
-privileged pods or allowing privilege escalation through the linux
+privileged pods and does not allow privilege escalation which is through the linux
 `no_new_privs` flag.
 
 This cluster uses [`cri-containerd`](https://github.com/kubernetes-incubator/cri-containerd)
 with [`runc`](https://github.com/opencontainers/runc) as the container
-runtime. They also use [`cilium`](https://github.com/cilium/cilium)
+runtime. It also uses [`cilium`](https://github.com/cilium/cilium)
 as a networking plugin.
 
 If you are wondering why I didn't use something like `cloud-init` it's because
@@ -51,6 +51,9 @@ $ ./azure/setup.sh
 ```
 
 The you can ssh into the master node and you are all good to go!
+
+> **NOTE:** if you want to change the number of nodes, etc checkout the
+> environment variables at the top of [`azure/setup.sh`](azure/setup.sh).
 
 ## Acknowledgements
 

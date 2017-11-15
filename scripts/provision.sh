@@ -229,12 +229,14 @@ do_k8s_worker(){
 }
 
 do_end_checks(){
+	if [[ "$CLOUD_PROVIDER" == "google" ]]; then
+		controller_ip=$(gcloud compute addresses describe "$PUBLIC_IP_NAME" --region "$REGION" --format 'value(address)')
+	fi
+
 	# check that we can reach the kube-apiserver externally
 	echo "Testing a curl to the apiserver..."
 	curl --cacert "${CERTIFICATE_TMP_DIR}/ca.pem" "https://${controller_ip}:6443/version"
-
-	echo "Checking get nodes..."
-	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl get nodes
+	echo ""
 }
 
 do_local_kubeconfig(){
@@ -254,6 +256,9 @@ do_local_kubeconfig(){
 		--user=admin
 
 	kubectl config use-context "$RESOURCE_GROUP"
+
+	echo "Checking get nodes..."
+	kubectl get nodes
 }
 
 do_certs

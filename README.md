@@ -1,8 +1,11 @@
-# k8s-configs
+# k8s-snowflake
 
-Configs and scripts for bootstrapping a Kubernetes cluster anywhere.
+Configs and scripts for bootstrapping an opinionated Kubernetes cluster anywhere.
 
-> **NOTE:** current support is only for Azure.
+Except it's my _snowflake opinionated k8s distro_ :)
+
+> **NOTE:** current support is only for Azure. There is some Google Cloud stuff
+> with todos...
 
 ## Provisioning
 

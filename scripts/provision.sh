@@ -123,6 +123,9 @@ do_k8s_controller(){
 	echo "Copying k8s rbac configs to controller node..."
 	scp -i "$SSH_KEYFILE" "${DIR}/../etc/cluster-role-"*.yaml "${VM_USER}@${controller_ip}":~/
 
+	echo "Copying k8s pod security policy configs to controller node..."
+	scp -i "$SSH_KEYFILE" "${DIR}/../etc/pod-security-policy-"*.yaml "${VM_USER}@${controller_ip}":~/
+
 	# wait for kube-apiserver service to come up
 	# TODO: make this not a shitty sleep you goddamn savage
 	sleep 10
@@ -133,6 +136,9 @@ do_k8s_controller(){
 	# create the rbac cluster roles
 	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl apply -f cluster-role-kube-apiserver-to-kubelet.yaml
 	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl apply -f cluster-role-binding-kube-apiserver-to-kubelet.yaml
+
+	# create the pod security policy
+	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl apply -f pod-security-policy-basic.yaml
 }
 
 do_k8s_worker(){
@@ -180,9 +186,19 @@ do_k8s_worker(){
 	done
 }
 
+do_end_checks(){
+	# check that we can reach the kube-apiserver externally
+	echo "Testing a curl to the apiserver..."
+	curl --cacert "${CERTIFICATE_TMP_DIR}/ca.pem" "https://${controller_ip}:6443/version"
+
+	echo "Checking get nodes..."
+	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl get nodes
+}
+
 do_certs
 do_kubeconfigs
 do_encryption_config
 do_etcd
 do_k8s_controller
 do_k8s_worker
+do_end_checks

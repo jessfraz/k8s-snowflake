@@ -88,11 +88,10 @@ create_worker_nodes() {
 	done
 }
 
-# TODO: uncomment these
 create_resource_group
-#create_virtual_network
-#create_apiserver_ip_address
-#create_controller_node
-#create_worker_nodes
+create_virtual_network
+create_apiserver_ip_address
+create_controller_node
+create_worker_nodes
 
 "${SCRIPT_DIR}/provision.sh"

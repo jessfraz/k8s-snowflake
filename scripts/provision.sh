@@ -220,6 +220,25 @@ do_end_checks(){
 	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl get nodes
 }
 
+do_local_kubeconfig(){
+	# setup local kubectl
+	kubectl config set-cluster "$RESOURCE_GROUP" \
+		--certificate-authority="${CERTIFICATE_TMP_DIR}/ca.pem" \
+		--embed-certs=true \
+		--server="https://${controller_ip}:6443"
+
+	kubectl config set-credentials admin \
+		--client-certificate="${CERTIFICATE_TMP_DIR}/admin.pem" \
+		--client-key="${CERTIFICATE_TMP_DIR}/admin-key.pem" \
+		--embed-certs=true
+
+	kubectl config set-context "$RESOURCE_GROUP" \
+		--cluster="$RESOURCE_GROUP" \
+		--user=admin
+
+	kubectl config use-context "$RESOURCE_GROUP"
+}
+
 do_certs
 do_kubeconfigs
 do_encryption_config
@@ -227,3 +246,4 @@ do_etcd
 do_k8s_controller
 do_k8s_worker
 do_end_checks
+do_local_kubeconfig

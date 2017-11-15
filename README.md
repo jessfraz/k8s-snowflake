@@ -18,9 +18,13 @@ here we are. :P
 I purposely tried to keep this as minimal and simple as possible from the OS
 base up.
 
+### Base OS
+
 Every node uses [Intel's Clear Linux](https://clearlinux.org/) as the base.
 This is for reasons of security and performance. If you would like to learn
 more on that you should click the link to their site.
+
+### RBAC and Pod Security Policies
 
 Kubernetes is installed with [`RBAC`](https://kubernetes.io/docs/admin/authorization/rbac/)
 and is set up with a few roles and bindings that map to pod security policies.
@@ -43,14 +47,12 @@ namespaces):
 - `privileged`: can create pods that are privileged and use the privileged pod
   security policy
 
+### Container Runtime
+
 This cluster uses [`cri-containerd`](https://github.com/kubernetes-incubator/cri-containerd)
 with [`runc`](https://github.com/opencontainers/runc) as the container
 runtime. It also uses [`cilium`](https://github.com/cilium/cilium)
 as a networking plugin.
-
-If you are wondering why I didn't use something like `cloud-init` it's because
-Clear Linux has a pretty weirdly behaving version of `cloud-init` and I love
-bash, m'kay.
 
 ### Azure
 
@@ -66,7 +68,8 @@ To provision your cluster, clone this repo and run:
 $ ./azure/setup.sh
 ```
 
-The you can ssh into the master node and run `kubectl` and you are all good to go!
+The script automatically sets up an `admin` user with kubeconfig locally so you
+should be able to just run `kubectl` after!
 
 > **NOTE:** if you want to change the number of nodes, etc checkout the
 > environment variables at the top of [`azure/setup.sh`](azure/setup.sh).
@@ -76,3 +79,7 @@ The you can ssh into the master node and run `kubectl` and you are all good to g
 Thanks to [@kelseyhightower](https://github.com/kelseyhightower) for
 [kubernetes-the-hard-way](https://github.com/kelseyhightower/kubernetes-the-hard-way)
 which helped a lot of this.
+
+If you are wondering why I didn't use something like `cloud-init` it's because
+Clear Linux has a pretty weirdly behaving version of `cloud-init` and I love
+bash, m'kay.

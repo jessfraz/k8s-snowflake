@@ -12,6 +12,11 @@ KUBERNETES_VERSION=v1.8.3
 # curl -sSL https://api.github.com/repos/containernetworking/plugins/releases/latest | jq .tag_name
 CNI_VERSION=v0.6.0
 
+# From https://github.com/Azure/azure-container-networking/releases
+# OR
+# curl -sSL https://api.github.com/repos/Azure/azure-container-networking/releases/latest | jq .tag_name
+AZURE_CNI_VERSION=v0.91
+
 # From https://github.com/kubernetes-incubator/cri-containerd/releases
 # OR
 # curl -sSL https://api.github.com/repos/kubernetes-incubator/cri-containerd/releases/latest | jq .tag_name
@@ -27,6 +32,34 @@ install_cni() {
 	curl -sSL "$download_uri" | tar -xz -C "$cni_bin"
 
 	chmod +x "${cni_bin}"/*
+}
+
+install_azure_cni() {
+	local download_uri="https://github.com/Azure/azure-container-networking/releases/download/${AZURE_CNI_VERSION}/azure-vnet-cni-linux-amd64-${AZURE_CNI_VERSION}.tgz"
+	local cni_bin="/opt/cni/bin"
+	local cni_opt="/etc/cni/net.d"
+
+	# make the needed directories
+	mkdir -p "$cni_bin" "$cni_opt"
+
+	curl -sSL "$download_uri" | tar -xz -C "$cni_bin"
+
+	# move config file
+	mv "${cni_bin}/10-azure.conf" "$cni_opt"
+	chmod 600 "${cni_opt}/10-azure.conf"
+
+	# remove bridge config
+	rm "${cni_opt}/10-bridge.conf"
+
+	chmod +x "${cni_bin}"/*
+
+	# Dump ebtables rules.
+	/sbin/ebtables -t nat --list
+
+	# touch /etc/hosts if it does not already exist
+	if [[ ! -f /etc/hosts ]]; then
+		touch /etc/hosts
+	fi
 }
 
 install_cri_containerd() {
@@ -58,7 +91,9 @@ configure() {
 	pod_cidr="10.200.${worker}.0/24"
 
 	# update the cni bridge conf file
-	sed -i "s#POD_CIDR#${pod_cidr}#g" /etc/cni/net.d/10-bridge.conf
+	if [[ -f /etc/cni/net.d/10-bridge.conf ]]; then
+		sed -i "s#POD_CIDR#${pod_cidr}#g" /etc/cni/net.d/10-bridge.conf
+	fi
 
 	# update the kubelet systemd service file
 	sed -i "s#POD_CIDR#${pod_cidr}#g" /etc/systemd/system/kubelet.service
@@ -80,6 +115,9 @@ install_kubernetes_worker(){
 	fi
 
 	install_cni
+	if [[ "$CLOUD_PROVIDER" == "azure" ]]; then
+		install_azure_cni
+	fi
 	install_cri_containerd
 	install_kubernetes_components
 	configure

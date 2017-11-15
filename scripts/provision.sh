@@ -109,6 +109,11 @@ do_etcd(){
 
 	# cleanup the script after install
 	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" rm install_etcd.sh
+
+	# TODO: make this less shitty and not a sleep
+	# sanity check for etcd
+	sleep 5
+	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" ETCDCTL_API=3 etcdctl member list
 }
 
 do_k8s_controller(){
@@ -233,7 +238,7 @@ do_k8s_worker(){
 		done
 
 		echo "Running install_kubernetes_worker.sh on ${instance}..."
-		ssh -i "$SSH_KEYFILE" "${VM_USER}@${external_ip}" sudo ./install_kubernetes_worker.sh
+		ssh -i "$SSH_KEYFILE" "${VM_USER}@${external_ip}" CLOUD_PROVIDER="${CLOUD_PROVIDER}" sudo -E  bash -c './install_kubernetes_worker.sh'
 
 		# cleanup the script after install
 		ssh -i "$SSH_KEYFILE" "${VM_USER}@${external_ip}" rm install_kubernetes_worker.sh
@@ -273,6 +278,11 @@ do_local_kubeconfig(){
 	kubectl get nodes
 }
 
+cleanup(){
+	# clean up all our temporary files
+	rm -rf "$CERTIFICATE_TMP_DIR" "$KUBECONFIG_TMP_DIR" "$ENCRYPTION_CONFIG"
+}
+
 do_certs
 do_kubeconfigs
 do_encryption_config
@@ -281,3 +291,4 @@ do_k8s_controller
 do_k8s_worker
 do_end_checks
 do_local_kubeconfig
+cleanup

@@ -51,7 +51,7 @@ create_resource_group() {
 create_virtual_network() {
 	echo "Creating virtual network ${VIRTUAL_NETWORK_NAME}..."
 	az network vnet create --name "$VIRTUAL_NETWORK_NAME" --resource-group "$RESOURCE_GROUP" \
-		--address-prefix 10.240.0.0/16 --subnet-name "k8s-subnet" --subnet-prefix 10.240.0.0/24
+		--address-prefix 10.0.0.0/8 --subnet-name "k8s-subnet" --subnet-prefix 10.240.0.0/16
 }
 
 create_apiserver_ip_address() {
@@ -61,13 +61,21 @@ create_apiserver_ip_address() {
 
 create_controller_node() {
 	echo "Creating controller node ${CONTROLLER_NODE_NAME}..."
+
+	# create an availability set
+	az vm availability-set create --resource-group "$RESOURCE_GROUP" \
+		--name "${CONTROLLER_NODE_NAME}-availability-set"
+
+	# create the VM
 	az vm create --name "$CONTROLLER_NODE_NAME" --resource-group "$RESOURCE_GROUP" \
 		--ssh-key-value "$SSH_KEYFILE_VALUE" \
 		--image "$OS_SYSTEM" \
 		--admin-username "$VM_USER" \
 		--size "$VM_SIZE" \
 		--vnet-name "$VIRTUAL_NETWORK_NAME" \
+		--availability-set "${CONTROLLER_NODE_NAME}-availability-set" \
 		--subnet "k8s-subnet" \
+		--private-ip-address 10.240.255.5 \
 		--public-ip-address "$PUBLIC_IP_NAME" \
 		--nsg "k8s-controller-security-group" \
 		--tags "controller,kubernetes"
@@ -108,7 +116,13 @@ create_worker_nodes() {
 		worker_node_name="worker-node-${i}"
 		echo "Creating worker node ${worker_node_name}..."
 
+		# create an availability set
+		az vm availability-set create --resource-group "$RESOURCE_GROUP" \
+			--name "${worker_node_name}-availability-set"
+
+		# create the VM
 		az vm create --name "$worker_node_name" --resource-group "$RESOURCE_GROUP" \
+			--private-ip-address "10.240.255.5${i}" \
 			--public-ip-address-allocation="dynamic" \
 			--ssh-key-value "$SSH_KEYFILE_VALUE" \
 			--image "$OS_SYSTEM" \
@@ -116,6 +130,7 @@ create_worker_nodes() {
 			--size "$VM_SIZE" \
 			--vnet-name "$VIRTUAL_NETWORK_NAME" \
 			--subnet "k8s-subnet" \
+			--availability-set "${worker_node_name}-availability-set" \
 			--tags "worker,kubernetes"
 
 		# enable ip forwarding

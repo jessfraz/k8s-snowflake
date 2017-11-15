@@ -142,12 +142,24 @@ do_k8s_controller(){
 	echo "Copying k8s kube-dns config to controller node..."
 	scp -i "$SSH_KEYFILE" "${DIR}/../etc/kube-dns.yaml" "${VM_USER}@${controller_ip}":~/
 
+	# get the internal ip for the instance
+	# this is cloud provider specific
+	# Google Cloud
+	if [[ "$CLOUD_PROVIDER" == "google" ]]; then
+		internal_ip=$(gcloud compute instances describe "$CONTROLLER_NODE_NAME" --format 'value(networkInterfaces[0].networkIP)')
+	fi
+	# Azure
+	if [[ "$CLOUD_PROVIDER" == "azure" ]]; then
+		internal_ip=$(az vm show -g "$RESOURCE_GROUP" -n "$CONTROLLER_NODE_NAME" --show-details --query 'privateIps' -o tsv | tr -d '[:space:]')
+	fi
+
 	# configure cilium to use etcd tls
 	tmpd=$(mktemp -d)
 	ciliumconfig="${tmpd}/cilium.yaml"
 	sed "s#ETCD_CA#$(base64 -w 0 "${CERTIFICATE_TMP_DIR}/ca.pem")#" "${DIR}/../etc/cilium.yaml" > "$ciliumconfig"
 	sed -i "s#ETCD_CLIENT_KEY#$(base64 -w 0 "${CERTIFICATE_TMP_DIR}/kubernetes-key.pem")#" "$ciliumconfig"
 	sed -i "s#ETCD_CLIENT_CERT#$(base64 -w 0 "${CERTIFICATE_TMP_DIR}/kubernetes.pem")#" "$ciliumconfig"
+	sed -i "s#INTERNAL_IP#${internal_ip}#" "$ciliumconfig"
 
 	echo "Copying k8s cilium config to controller node..."
 	scp -i "$SSH_KEYFILE" "$ciliumconfig" "${VM_USER}@${controller_ip}":~/

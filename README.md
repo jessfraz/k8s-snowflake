@@ -50,7 +50,7 @@ To provision your cluster, clone this repo and run:
 $ ./azure/setup.sh
 ```
 
-The you can ssh into the master node and you are all good to go!
+The you can ssh into the master node and run `kubectl` and you are all good to go!
 
 > **NOTE:** if you want to change the number of nodes, etc checkout the
 > environment variables at the top of [`azure/setup.sh`](azure/setup.sh).

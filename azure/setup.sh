@@ -92,6 +92,12 @@ create_controller_node() {
 	# create the route table
 	az network route-table create --resource-group "$RESOURCE_GROUP" \
 		--name "k8s-route-table"
+
+	# update the subnet
+	az network vnet subnet update --resource-group "$RESOURCE_GROUP" \
+		--name "k8s-subnet" \
+		--vnet-name "$VIRTUAL_NETWORK_NAME" \
+		--route-table "k8s-route-table"
 }
 
 create_worker_nodes() {

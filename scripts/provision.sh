@@ -148,10 +148,12 @@ do_k8s_worker(){
 
 		echo "Moving certficates to correct location for k8s on ${instance}..."
 		ssh -i "$SSH_KEYFILE" "${VM_USER}@${external_ip}" sudo mkdir -p /var/lib/kubelet/
-		ssh -i "$SSH_KEYFILE" "${VM_USER}@${external_ip}" sudo cp "${instance}-key.pem" "${instance}.pem" /var/lib/kubelet/
+		ssh -i "$SSH_KEYFILE" "${VM_USER}@${external_ip}" sudo mv "${instance}-key.pem" "${instance}.pem" /var/lib/kubelet/
 		ssh -i "$SSH_KEYFILE" "${VM_USER}@${external_ip}" sudo mkdir -p /var/lib/kubernetes/
-		ssh -i "$SSH_KEYFILE" "${VM_USER}@${external_ip}" sudo cp ca.pem /var/lib/kubernetes/
-		ssh -i "$SSH_KEYFILE" "${VM_USER}@${external_ip}" sudo cp "${instance}.kubeconfig" /var/lib/kubelet/kubeconfig
+		ssh -i "$SSH_KEYFILE" "${VM_USER}@${external_ip}" sudo mv ca.pem /var/lib/kubernetes/
+		ssh -i "$SSH_KEYFILE" "${VM_USER}@${external_ip}" sudo mv "${instance}.kubeconfig" /var/lib/kubelet/kubeconfig
+		ssh -i "$SSH_KEYFILE" "${VM_USER}@${external_ip}" sudo mkdir -p /var/lib/kube-proxy/
+		ssh -i "$SSH_KEYFILE" "${VM_USER}@${external_ip}" sudo mv kube-proxy.kubeconfig /var/lib/kube-proxy/kubeconfig
 
 		scp -i "$SSH_KEYFILE" "${DIR}/../etc/cni/net.d/"*.conf "${VM_USER}@${external_ip}":~/
 
@@ -178,9 +180,9 @@ do_k8s_worker(){
 	done
 }
 
-#do_certs
-#do_kubeconfigs
-#do_encryption_config
-#do_etcd
-#do_k8s_controller
+do_certs
+do_kubeconfigs
+do_encryption_config
+do_etcd
+do_k8s_controller
 do_k8s_worker

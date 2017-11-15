@@ -30,7 +30,9 @@ install_cni() {
 }
 
 install_cri_containerd() {
-	local download_uri="https://github.com/kubernetes-incubator/cri-containerd/releases/download/v${CRI_CONTAINERD_VERSION}/cri-containerd-${CRI_CONTAINERD_VERSION}.tar.gz"
+	# TODO: fix this
+	# local download_uri="https://github.com/kubernetes-incubator/cri-containerd/releases/download/v${CRI_CONTAINERD_VERSION}/cri-containerd-${CRI_CONTAINERD_VERSION}.tar.gz"
+	local download_uri="https://misc.j3ss.co/tmp/cri-containerd-${CRI_CONTAINERD_VERSION}-dirty.tar.gz"
 
 	curl -sSL "$download_uri" | tar -xz -C /
 }

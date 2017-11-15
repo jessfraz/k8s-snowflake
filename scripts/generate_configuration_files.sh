@@ -11,9 +11,9 @@ generate_configuration_files() {
 	# get the controller node public ip address
 	# this is cloud provider specific
 	# Google
-	# public_address=$(gcloud compute addresses describe "$CONTROLLER_NODE_NAME" --region "$(gcloud config get-value compute/region)" --format 'value(address)')
+	# internal_ip=$(gcloud compute addresses describe "$CONTROLLER_NODE_NAME" --region "$(gcloud config get-value compute/region)" --format 'value(address)')
 	# Azure
-	public_address=$(az network public-ip show -g "$RESOURCE_GROUP" --name "k8s-public-ip" --query 'ipAddress' -o tsv | tr -d '[:space:]')
+	internal_ip=$(az vm list-ip-addresses -g kubernetes-clear-linux -o table | grep controller | awk '{print $3}' | tr -d '[:space:]' | tr '\n' ',' | sed 's/,*$//g')
 
 	# Generate each workers kubeconfig
 	# 	outputs: worker-0.kubeconfig worker-1.kubeconfig worker-2.kubeconfig
@@ -22,7 +22,7 @@ generate_configuration_files() {
 		kubectl config set-cluster "$RESOURCE_GROUP" \
 			--certificate-authority="${CERTIFICATE_TMP_DIR}/ca.pem" \
 			--embed-certs=true \
-			--server="https://${public_address}:6443" \
+			--server="https://${internal_ip}:6443" \
 			--kubeconfig="${instance}.kubeconfig"
 
 		kubectl config set-credentials "system:node:${instance}" \
@@ -44,7 +44,7 @@ generate_configuration_files() {
 	kubectl config set-cluster "$RESOURCE_GROUP" \
 		--certificate-authority="${CERTIFICATE_TMP_DIR}/ca.pem" \
 		--embed-certs=true \
-		--server="https://${public_address}:6443" \
+		--server="https://${internal_ip}:6443" \
 		--kubeconfig=kube-proxy.kubeconfig
 
 	kubectl config set-credentials kube-proxy \

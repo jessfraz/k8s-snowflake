@@ -27,6 +27,10 @@ with [`runc`](https://github.com/opencontainers/runc) as the container
 runtime. They also use [`cilium`](https://github.com/cilium/cilium)
 as a networking plugin.
 
+If you are wondering why I didn't use something like `cloud-init` it's because
+Clear Linux has a pretty weirdly behaving version of `cloud-init` and I love
+bash, m'kay.
+
 ### Azure
 
 Make sure you have the `az` tool installed. You can find instructions on

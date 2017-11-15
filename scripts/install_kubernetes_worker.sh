@@ -30,7 +30,7 @@ install_cni() {
 }
 
 install_cri_containerd() {
-	# TODO: fix this
+	# TODO: fix this when this is merged https://github.com/kubernetes-incubator/cri-containerd/pull/415
 	# local download_uri="https://github.com/kubernetes-incubator/cri-containerd/releases/download/v${CRI_CONTAINERD_VERSION}/cri-containerd-${CRI_CONTAINERD_VERSION}.tar.gz"
 	local download_uri="https://misc.j3ss.co/tmp/cri-containerd-${CRI_CONTAINERD_VERSION}-dirty.tar.gz"
 

@@ -67,7 +67,18 @@ create_controller_node() {
 		--vnet-name "$VIRTUAL_NETWORK_NAME" \
 		--subnet "k8s-subnet" \
 		--public-ip-address "$PUBLIC_IP_NAME" \
+		--nsg "k8s-controller-security-group" \
 		--tags "controller,kubernetes"
+
+	# create NSG rule to allow traffic on port 6443
+	az network nsg rule create --resource-group "$RESOURCE_GROUP" \
+		--nsg-name "k8s-controller-security-group" \
+		--name kubeapi --access allow \
+		--protocol Tcp --direction Inbound --priority 200 \
+		--source-address-prefix "*" \
+		--source-port-range "*" \
+		--destination-address-prefix "*" \
+		--destination-port-range 6443
 }
 
 create_worker_nodes() {

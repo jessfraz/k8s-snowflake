@@ -156,6 +156,7 @@ spec:
             mountPath: /var/lib/etcd-secrets
             readOnly: true
         securityContext:
+          allowPrivilegeEscalation: true
           capabilities:
             add:
               - "NET_ADMIN"

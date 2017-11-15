@@ -1,17 +1,21 @@
 apiVersion: extensions/v1beta1
 kind: PodSecurityPolicy
 metadata:
-  name: basic
+  name: restricted
 spec:
   privileged: false
   allowPrivilegeEscalation: false
   defaultAllowPrivilegeEscalation: false
+  hostNetwork: false
+  hostPID: false
+  hostIPC: false
+  hostNetwork: false
   seLinux:
     rule: RunAsAny
   supplementalGroups:
     rule: RunAsAny
   runAsUser:
-    rule: RunAsAny
+    rule: MustRunAsNonRoot
   fsGroup:
     rule: RunAsAny
   volumes:

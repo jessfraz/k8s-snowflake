@@ -23,12 +23,25 @@ This is for reasons of security and performance. If you would like to learn
 more on that you should click the link to their site.
 
 Kubernetes is installed with [`RBAC`](https://kubernetes.io/docs/admin/authorization/rbac/)
-and is set up with an admin user.
+and is set up with a few roles and bindings that map to pod security policies.
 
-There is a [basic pod security policy](etc/pod-security-policy-basic.yaml)
+There is a [restricted pod security policy](etc/pod-security-policy-restricted.yaml)
 which does not allow running
 privileged pods and does not allow privilege escalation which is through the linux
 `no_new_privs` flag.
+
+There is also a [permissive pod security
+policy](etc/pod-security-policy-permissive.yaml) which enables system
+components like `cilium` to run privileged pods.
+
+There are two cluster role bindings created (which grant permissions across
+namespaces):
+
+- `privileged`: cannot create privileged pods, cannot escalate privileges,
+  cannot run containers as root, cannot use the host network, IPC or PID
+  namespace
+- `privileged`: can create pods that are privileged and use the privileged pod
+  security policy
 
 This cluster uses [`cri-containerd`](https://github.com/kubernetes-incubator/cri-containerd)
 with [`runc`](https://github.com/opencontainers/runc) as the container

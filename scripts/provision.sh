@@ -149,18 +149,21 @@ do_k8s_controller(){
 	# get the component statuses for sanity
 	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl get componentstatuses
 
+	# create the pod permissive security policy
+	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl apply -f pod-security-policy-permissive.yaml
+	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl apply -f pod-security-policy-restricted.yaml
+
 	# create the rbac cluster roles
 	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl apply -f cluster-role-kube-apiserver-to-kubelet.yaml
 	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl apply -f cluster-role-binding-kube-apiserver-to-kubelet.yaml
+	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl apply -f cluster-role-restricted.yaml
+	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl apply -f cluster-role-binding-restricted.yaml
 
 	# create kube-dns
 	ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl apply -f kube-dns.yaml
 
 	# create cilium
 	# ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl apply -f cilium.yaml
-
-	# create the pod security policy
-	# ssh -i "$SSH_KEYFILE" "${VM_USER}@${controller_ip}" kubectl apply -f pod-security-policy-basic.yaml
 }
 
 do_k8s_worker(){

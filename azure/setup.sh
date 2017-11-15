@@ -14,7 +14,7 @@ command -v az >/dev/null 2>&1 || { echo >&2 "This script requires the azure comm
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 SCRIPT_DIR="${DIR}/../scripts"
 
-export RESOURCE_GROUP=${RESOURCE_GROUP:-kubernetes-clear-linux}
+export RESOURCE_GROUP=${RESOURCE_GROUP:-kubernetes-clear-linux-snowflake}
 export REGION=${REGION:-eastus}
 export CONTROLLER_NODE_NAME=${CONTROLLER_NODE_NAME:-controller-node}
 export SSH_KEYFILE=${SSH_KEYFILE:-${HOME}/.ssh/id_rsa}
@@ -37,7 +37,7 @@ VM_SIZE="Standard_D2s_v3"
 OS_SYSTEM="clear-linux-project:clear-linux-os:containers:18860.0.0"
 
 create_resource_group() {
-	exists=$(az group exists --name kubernetes-clear-linux | tr -d '[:space:]')
+	exists=$(az group exists --name "$RESOURCE_GROUP" | tr -d '[:space:]')
 
 	# Create the resource group if it does not already exist.
 	if [[ "$exists" != "true" ]]; then

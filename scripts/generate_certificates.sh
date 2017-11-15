@@ -112,6 +112,11 @@ generate_certificates() {
 		# get the controller internal ips
 		internal_ips=$(az vm list-ip-addresses -g "$RESOURCE_GROUP" -o table | grep controller | awk '{print $3}' | tr -d '[:space:]' | tr '\n' ',' | sed 's/,*$//g')
 	fi
+	# Vagrant
+	if [[ "$CLOUD_PROVIDER" == "vagrant" ]]; then
+		internal_ips=172.17.8.100
+		public_address=172.17.8.100
+	fi
 
 	# create the kube-apiserver client certificate
 	# 	outputs: kubernetes-key.pem kubernetes.pem

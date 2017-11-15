@@ -113,6 +113,9 @@ install_kubernetes_worker(){
 	if [[ "$CLOUD_PROVIDER" == "google" ]]; then
 		sudo apt-get -y install socat
 	fi
+	if [[ "$CLOUD_PROVIDER" == "vagrant" ]]; then
+		sudo apt-get -y install socat
+	fi
 
 	install_cni
 	if [[ "$CLOUD_PROVIDER" == "azure" ]]; then

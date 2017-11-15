@@ -20,7 +20,12 @@ This is for reasons of security and performance. If you would like to learn
 more on that you should click the link previously to their site.
 
 Kubernetes is installed with [`RBAC`](https://kubernetes.io/docs/admin/authorization/rbac/)
-and is set up with sane defaults. [TODO: more on this]
+and is set up with an admin user.
+
+There is a [basic pod security policy](etc/pod-security-policy-basic.yaml)
+which does not allow running
+privileged pods or allowing privilege escalation through the linux
+`no_new_privs` flag.
 
 This cluster uses [`cri-containerd`](https://github.com/kubernetes-incubator/cri-containerd)
 with [`runc`](https://github.com/opencontainers/runc) as the container

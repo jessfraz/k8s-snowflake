@@ -97,7 +97,7 @@ generate_certificates() {
 	# Azure
 	public_address=$(az network public-ip show -g "$RESOURCE_GROUP" --name "k8s-public-ip" --query 'ipAddress' -o tsv | tr -d '[:space:]')
 	# get the controller internal ips
-	internal_ips=$(az vm list-ip-addresses -g kubernetes-clear-linux -o table | grep controller | awk '{print $3}' | tr -d '[:space:]' | tr '\n' ',' | sed 's/,*$//g')
+	internal_ips=$(az vm list-ip-addresses -g "$RESOURCE_GROUP" -o table | grep controller | awk '{print $3}' | tr -d '[:space:]' | tr '\n' ',' | sed 's/,*$//g')
 
 	# create the kube-apiserver client certificate
 	# 	outputs: kubernetes-key.pem kubernetes.pem

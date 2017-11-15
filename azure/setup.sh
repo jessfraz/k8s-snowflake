@@ -97,6 +97,7 @@ create_controller_node() {
 	az network vnet subnet update --resource-group "$RESOURCE_GROUP" \
 		--name "k8s-subnet" \
 		--vnet-name "$VIRTUAL_NETWORK_NAME" \
+		--network-security-group "k8s-controller-security-group" \
 		--route-table "k8s-route-table"
 }
 

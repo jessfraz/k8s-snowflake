@@ -24,6 +24,11 @@ Every node uses [Intel's Clear Linux](https://clearlinux.org/) as the base.
 This is for reasons of security and performance. If you would like to learn
 more on that you should click the link to their site.
 
+### Encrypted `etcd` secret data at rest
+
+Data is encrypted with `aescbc`. You verify it's encrypted by following [these
+instructions](https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#verifying-that-data-is-encrypted).
+
 ### RBAC and Pod Security Policies
 
 Kubernetes is installed with [`RBAC`](https://kubernetes.io/docs/admin/authorization/rbac/)

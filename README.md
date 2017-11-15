@@ -54,12 +54,16 @@ namespaces):
 
 ### Container Runtime
 
-This cluster uses [`cri-containerd`](https://github.com/kubernetes-incubator/cri-containerd)
+The cluster uses [`cri-containerd`](https://github.com/kubernetes-incubator/cri-containerd)
 with [`runc`](https://github.com/opencontainers/runc) as the container
-runtime. It also uses [`cilium`](https://github.com/cilium/cilium)
+runtime.
+
+### Networking
+
+The cluster uses [`cilium`](https://github.com/cilium/cilium)
 as a networking plugin.
 
-### Azure
+## Azure
 
 Make sure you have the `az` tool installed. You can find instructions on
 downloading that

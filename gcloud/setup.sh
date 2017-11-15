@@ -18,7 +18,7 @@ SCRIPT_DIR="${DIR}/../scripts"
 
 export RESOURCE_GROUP=${RESOURCE_GROUP:-kubernetes-clear-linux-snowflake}
 export REGION=${REGION:-us-east1}
-export ZONE=${ZONE:-us-east1c}
+export ZONE=${ZONE:-us-east1-c}
 export CONTROLLER_NODE_NAME=${CONTROLLER_NODE_NAME:-controller-node}
 export SSH_KEYFILE=${SSH_KEYFILE:-${HOME}/.ssh/id_rsa}
 export WORKERS=${WORKERS:-2}
@@ -71,7 +71,6 @@ create_apiserver_ip_address() {
 create_controller_node() {
 	echo "Creating controller node ${CONTROLLER_NODE_NAME}..."
 	gcloud compute instances create "$CONTROLLER_NODE_NAME" \
-		--async \
 		--boot-disk-size 200GB \
 		--can-ip-forward \
 		--image-family "$IMAGE_FAMILY" \
@@ -89,7 +88,6 @@ create_worker_nodes() {
 		echo "Creating worker node ${worker_node_name}..."
 
 		gcloud compute instances create "$worker_node_name" \
-			--async \
 			--boot-disk-size 200GB \
 			--can-ip-forward \
 			--image-family "$IMAGE_FAMILY" \
@@ -103,8 +101,8 @@ create_worker_nodes() {
 		# configure routes
 		gcloud compute routes create "${worker_node_name}-route" \
 			--network "$VIRTUAL_NETWORK_NAME" \
-			--next-hop-address 10.240.0.2${i} \
-			--destination-range 10.200.${i}.0/24
+			--next-hop-address "10.240.0.2${i}" \
+			--destination-range "10.200.${i}.0/24"
 	done
 }
 
@@ -112,8 +110,6 @@ create_loadbalancer(){
 	gcloud compute target-pools create kubernetes-target-pool
 	gcloud compute target-pools add-instances kubernetes-target-pool \
 		--instances "$CONTROLLER_NODE_NAME"
-
-	public_ip=$(gcloud compute addresses describe "$PUBLIC_IP_NAME" --region "$REGION" --format 'value(name)')
 
 	gcloud compute forwarding-rules create "${PUBLIC_IP_NAME}-forwarding-rule" \
 		--address "$PUBLIC_IP_NAME" \

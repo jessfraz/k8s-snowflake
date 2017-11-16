@@ -16,7 +16,7 @@ export VM_USER="vagrant"
 export WORKERS=${WORKERS:-0}
 
 export SSH_CONFIG="${DIR}/../.vagrant/ssh_config"
-export SSH_KEYFILE="~/.vagrant.d/insecure_private_key"
+export SSH_KEYFILE="${HOME}/.vagrant.d/insecure_private_key"
 export SSH_OPTIONS="-F ${SSH_CONFIG}"
 export RESOURCE_GROUP=${RESOURCE_GROUP:-kubernetes-clear-linux-snowflake}
 
@@ -24,6 +24,6 @@ if [[ $1 == "clean" ]]; then
   vagrant destroy -f
 else
   vagrant up
-  vagrant ssh-config > ${SSH_CONFIG}
+  vagrant ssh-config > "${SSH_CONFIG}"
   "${SCRIPT_DIR}/provision.sh"
 fi

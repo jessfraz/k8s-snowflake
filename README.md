@@ -49,7 +49,7 @@ namespaces):
 - `restricted`: cannot create privileged pods, cannot escalate privileges,
   cannot run containers as root, cannot use the host network, IPC or PID
   namespace
-- `privileged`: can create pods that are privileged and use the privileged pod
+- `permissive`: can create pods that are privileged and use the privileged pod
   security policy
 
 ### Container Runtime

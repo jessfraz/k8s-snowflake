@@ -17,7 +17,6 @@ export WORKERS=${WORKERS:-0}
 
 export SSH_CONFIG="${DIR}/../.vagrant/ssh_config"
 export SSH_KEYFILE="${HOME}/.vagrant.d/insecure_private_key"
-export SSH_OPTIONS="-F ${SSH_CONFIG}"
 export RESOURCE_GROUP=${RESOURCE_GROUP:-kubernetes-clear-linux-snowflake}
 
 if [[ $1 == "clean" ]]; then

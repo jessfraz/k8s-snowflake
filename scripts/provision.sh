@@ -5,9 +5,13 @@
 set -e
 set -o pipefail
 
+[[ -n $DEBUG ]] && set -x
+
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-export SSH_OPTIONS="${SSH_OPTIONS} -i ${SSH_KEYFILE}"
+[[ -n "${SSH_CONFIG}" ]] && SSH_OPTIONS=("${SSH_OPTIONS[@]}" "-F" "${SSH_CONFIG}")
+[[ -n "${SSH_KEYFILE}" ]] && SSH_OPTIONS=("${SSH_OPTIONS[@]}" "-i" "${SSH_KEYFILE}")
+
 
 
 # get the controller node public ip address
@@ -33,6 +37,16 @@ fi
 
 echo "Provisioning kubernetes cluster for resource group $RESOURCE_GROUP..."
 
+do_scp(){
+	scp "${SSH_OPTIONS[@]}" "$@"
+}
+
+do_ssh(){
+	# we want this to expand on client
+	# shellcheck disable=SC2029
+	ssh "${SSH_OPTIONS[@]}" "$@"
+}
+
 do_certs(){
 	echo "Generating certificates locally with cfssl..."
 	# shellcheck disable=SC1090
@@ -43,7 +57,7 @@ do_certs(){
 	echo "Certificates successfully generated in ${CERTIFICATE_TMP_DIR}!"
 
 	echo "Copying certs to controller node..."
-	scp "${SSH_OPTIONS}" "${CERTIFICATE_TMP_DIR}/ca.pem" "${CERTIFICATE_TMP_DIR}/ca-key.pem" "${CERTIFICATE_TMP_DIR}/kubernetes.pem" "${CERTIFICATE_TMP_DIR}/kubernetes-key.pem" "${VM_USER}@${controller_ip}":~/
+	do_scp "${CERTIFICATE_TMP_DIR}/ca.pem" "${CERTIFICATE_TMP_DIR}/ca-key.pem" "${CERTIFICATE_TMP_DIR}/kubernetes.pem" "${CERTIFICATE_TMP_DIR}/kubernetes-key.pem" "${VM_USER}@${controller_ip}":~/
 
 	echo "Copying certs to worker nodes..."
 	for i in $(seq 0 "$WORKERS"); do
@@ -65,7 +79,7 @@ do_certs(){
 		fi
 
 		# Copy the certificates
-		scp "${SSH_OPTIONS}" "${CERTIFICATE_TMP_DIR}/ca.pem" "${CERTIFICATE_TMP_DIR}/${instance}-key.pem" "${CERTIFICATE_TMP_DIR}/${instance}.pem" "${VM_USER}@${external_ip}":~/
+		do_scp "${CERTIFICATE_TMP_DIR}/ca.pem" "${CERTIFICATE_TMP_DIR}/${instance}-key.pem" "${CERTIFICATE_TMP_DIR}/${instance}.pem" "${VM_USER}@${external_ip}":~/
 	done
 }
 
@@ -95,7 +109,7 @@ do_kubeconfigs(){
 		fi
 
 		# Copy the kubeconfigs
-		scp "${SSH_OPTIONS}" "${KUBECONFIG_TMP_DIR}/${instance}.kubeconfig" "${KUBECONFIG_TMP_DIR}/kube-proxy.kubeconfig" "${VM_USER}@${external_ip}":~/
+		do_scp "${KUBECONFIG_TMP_DIR}/${instance}.kubeconfig" "${KUBECONFIG_TMP_DIR}/kube-proxy.kubeconfig" "${VM_USER}@${external_ip}":~/
 	done
 }
 
@@ -107,65 +121,65 @@ do_encryption_config(){
 	echo "Encryption config successfully generated in ${ENCRYPTION_CONFIG}!"
 
 	echo "Copying encryption config to controller node..."
-	scp "${SSH_OPTIONS}" "$ENCRYPTION_CONFIG" "${VM_USER}@${controller_ip}":~/
+	do_scp "$ENCRYPTION_CONFIG" "${VM_USER}@${controller_ip}":~/
 }
 
 do_etcd(){
 	echo "Moving certficates to correct location for etcd on controller node..."
-	ssh "${SSH_OPTIONS}" "${VM_USER}@${controller_ip}" sudo mkdir -p /etc/etcd/
-	ssh "${SSH_OPTIONS}" "${VM_USER}@${controller_ip}" sudo cp ca.pem kubernetes-key.pem kubernetes.pem /etc/etcd/
+	do_ssh "${VM_USER}@${controller_ip}" sudo mkdir -p /etc/etcd/
+	do_ssh "${VM_USER}@${controller_ip}" sudo cp ca.pem kubernetes-key.pem kubernetes.pem /etc/etcd/
 
 	echo "Copying etcd.service to controller node..."
-	scp "${SSH_OPTIONS}" "${DIR}/../etc/systemd/system/etcd.service" "${VM_USER}@${controller_ip}":~/
-	ssh "${SSH_OPTIONS}" "${VM_USER}@${controller_ip}" sudo mkdir -p /etc/systemd/system/
-	ssh "${SSH_OPTIONS}" "${VM_USER}@${controller_ip}" sudo mv etcd.service /etc/systemd/system/
+	do_scp "${DIR}/../etc/systemd/system/etcd.service" "${VM_USER}@${controller_ip}":~/
+	do_ssh "${VM_USER}@${controller_ip}" sudo mkdir -p /etc/systemd/system/
+	do_ssh "${VM_USER}@${controller_ip}" sudo mv etcd.service /etc/systemd/system/
 
 	echo "Copying etcd install script to controller node..."
-	scp "${SSH_OPTIONS}" "${DIR}/install_etcd.sh" "${VM_USER}@${controller_ip}":~/
+	do_scp "${DIR}/install_etcd.sh" "${VM_USER}@${controller_ip}":~/
 
 	echo "Running install_etcd.sh on controller node..."
-	ssh "${SSH_OPTIONS}" "${VM_USER}@${controller_ip}" sudo ./install_etcd.sh
+	do_ssh "${VM_USER}@${controller_ip}" sudo ./install_etcd.sh
 
 	# cleanup the script after install
-	ssh "${SSH_OPTIONS}" "${VM_USER}@${controller_ip}" rm install_etcd.sh
+	do_ssh "${VM_USER}@${controller_ip}" rm install_etcd.sh
 
 	# TODO: make this less shitty and not a sleep
 	# sanity check for etcd
-	while ! ssh "${SSH_OPTIONS}" "${VM_USER}@${controller_ip}" ETCDCTL_API=3 etcdctl member list; do
+	while ! do_ssh "${VM_USER}@${controller_ip}" ETCDCTL_API=3 etcdctl member list; do
 		sleep 5
 	done
 }
 
 do_k8s_controller(){
 	echo "Moving certficates to correct location for k8s on controller node..."
-	ssh "${SSH_OPTIONS}" "${VM_USER}@${controller_ip}" sudo mkdir -p /var/lib/kubernetes/
-	ssh "${SSH_OPTIONS}" "${VM_USER}@${controller_ip}" sudo mv ca.pem kubernetes-key.pem kubernetes.pem ca-key.pem encryption-config.yaml /var/lib/kubernetes/
+	do_ssh "${VM_USER}@${controller_ip}" sudo mkdir -p /var/lib/kubernetes/
+	do_ssh "${VM_USER}@${controller_ip}" sudo mv ca.pem kubernetes-key.pem kubernetes.pem ca-key.pem encryption-config.yaml /var/lib/kubernetes/
 
-	ssh "${SSH_OPTIONS}" "${VM_USER}@${controller_ip}" sudo mkdir -p /etc/systemd/system/
+	do_ssh "${VM_USER}@${controller_ip}" sudo mkdir -p /etc/systemd/system/
 	services=( kube-apiserver.service kube-scheduler.service kube-controller-manager.service )
 	for service in "${services[@]}"; do
 		echo "Copying $service to controller node..."
-		scp "${SSH_OPTIONS}" "${DIR}/../etc/systemd/system/${service}" "${VM_USER}@${controller_ip}":~/
-		ssh "${SSH_OPTIONS}" "${VM_USER}@${controller_ip}" sudo mv "$service" /etc/systemd/system/
+		do_scp "${DIR}/../etc/systemd/system/${service}" "${VM_USER}@${controller_ip}":~/
+		do_ssh "${VM_USER}@${controller_ip}" sudo mv "$service" /etc/systemd/system/
 	done
 
 	echo "Copying k8s controller install script to controller node..."
-	scp "${SSH_OPTIONS}" "${DIR}/install_kubernetes_controller.sh" "${VM_USER}@${controller_ip}":~/
+	do_scp "${DIR}/install_kubernetes_controller.sh" "${VM_USER}@${controller_ip}":~/
 
 	echo "Running install_kubernetes_controller.sh on controller node..."
-	ssh "${SSH_OPTIONS}" "${VM_USER}@${controller_ip}" sudo ./install_kubernetes_controller.sh
+	do_ssh "${VM_USER}@${controller_ip}" sudo ./install_kubernetes_controller.sh
 
 	# cleanup the script after install
-	ssh "${SSH_OPTIONS}" "${VM_USER}@${controller_ip}" rm install_kubernetes_controller.sh
+	do_ssh "${VM_USER}@${controller_ip}" rm install_kubernetes_controller.sh
 
 	echo "Copying k8s rbac configs to controller node..."
-	scp "${SSH_OPTIONS}" "${DIR}/../etc/cluster-role-"*.yaml "${VM_USER}@${controller_ip}":~/
+	do_scp "${DIR}/../etc/cluster-role-"*.yaml "${VM_USER}@${controller_ip}":~/
 
 	echo "Copying k8s pod configs to controller node..."
-	scp "${SSH_OPTIONS}" "${DIR}/../etc/pod-"*.yaml "${VM_USER}@${controller_ip}":~/
+	do_scp "${DIR}/../etc/pod-"*.yaml "${VM_USER}@${controller_ip}":~/
 
 	echo "Copying k8s kube-dns config to controller node..."
-	scp "${SSH_OPTIONS}" "${DIR}/../etc/kube-dns.yaml" "${VM_USER}@${controller_ip}":~/
+	do_scp "${DIR}/../etc/kube-dns.yaml" "${VM_USER}@${controller_ip}":~/
 
 	# get the internal ip for the instance
 	# this is cloud provider specific
@@ -191,7 +205,7 @@ do_k8s_controller(){
 	sed -i "s#INTERNAL_IP#${internal_ip}#" "$ciliumconfig"
 
 	echo "Copying k8s cilium config to controller node..."
-	scp "${SSH_OPTIONS}" "$ciliumconfig" "${VM_USER}@${controller_ip}":~/
+	do_scp "$ciliumconfig" "${VM_USER}@${controller_ip}":~/
 
 	# cleanup
 	rm -rf "$tmpd"
@@ -199,36 +213,36 @@ do_k8s_controller(){
 	# wait for kube-apiserver service to come up
 	# TODO: make this not a shitty sleep you goddamn savage
   echo "Waiting for kube-apiserver"
-	while ! ssh "${SSH_OPTIONS}" "${VM_USER}@${controller_ip}" kubectl get componentstatuses > /dev/null; do
+	while ! do_ssh "${VM_USER}@${controller_ip}" kubectl get componentstatuses > /dev/null; do
 		echo -n "."
 		sleep 10
 	done
 	echo "."
 
 	# get the component statuses for sanity
-	ssh "${SSH_OPTIONS}" "${VM_USER}@${controller_ip}" kubectl get componentstatuses
+	do_ssh "${VM_USER}@${controller_ip}" kubectl get componentstatuses
 
 	# create the pod permissive security policy
 	# Sometimes the api server responds to basic stuff, but needs for time for applies
 	# giving an error like:
 	#   error: unable to recognize "pod-security-policy-permissive.yaml": no matches for extensions/, Kind=PodSecurityPolicy
 	# until we find a good test for it ... just keep trying...
-	while ! ssh "${SSH_OPTIONS}" "${VM_USER}@${controller_ip}" kubectl apply -f pod-security-policy-permissive.yaml; do
+	while ! do_ssh "${VM_USER}@${controller_ip}" kubectl apply -f pod-security-policy-permissive.yaml; do
 		sleep 10
 	done
-	ssh "${SSH_OPTIONS}" "${VM_USER}@${controller_ip}" kubectl apply -f pod-security-policy-restricted.yaml
+	do_ssh "${VM_USER}@${controller_ip}" kubectl apply -f pod-security-policy-restricted.yaml
 
 	# create the rbac cluster roles
-	ssh "${SSH_OPTIONS}" "${VM_USER}@${controller_ip}" kubectl apply -f cluster-role-kube-apiserver-to-kubelet.yaml
-	ssh "${SSH_OPTIONS}" "${VM_USER}@${controller_ip}" kubectl apply -f cluster-role-binding-kube-apiserver-to-kubelet.yaml
-	ssh "${SSH_OPTIONS}" "${VM_USER}@${controller_ip}" kubectl apply -f cluster-role-restricted.yaml
-	ssh "${SSH_OPTIONS}" "${VM_USER}@${controller_ip}" kubectl apply -f cluster-role-binding-restricted.yaml
+	do_ssh "${VM_USER}@${controller_ip}" kubectl apply -f cluster-role-kube-apiserver-to-kubelet.yaml
+	do_ssh "${VM_USER}@${controller_ip}" kubectl apply -f cluster-role-binding-kube-apiserver-to-kubelet.yaml
+	do_ssh "${VM_USER}@${controller_ip}" kubectl apply -f cluster-role-restricted.yaml
+	do_ssh "${VM_USER}@${controller_ip}" kubectl apply -f cluster-role-binding-restricted.yaml
 
 	# create kube-dns
-	ssh "${SSH_OPTIONS}" "${VM_USER}@${controller_ip}" kubectl apply -f kube-dns.yaml
+	do_ssh "${VM_USER}@${controller_ip}" kubectl apply -f kube-dns.yaml
 
 	# create cilium
-	ssh "${SSH_OPTIONS}" "${VM_USER}@${controller_ip}" kubectl apply -f cilium.yaml
+	do_ssh "${VM_USER}@${controller_ip}" kubectl apply -f cilium.yaml
 }
 
 do_k8s_worker(){
@@ -251,36 +265,36 @@ do_k8s_worker(){
 		fi
 
 		echo "Moving certficates to correct location for k8s on ${instance}..."
-		ssh "${SSH_OPTIONS}" "${VM_USER}@${external_ip}" sudo mkdir -p /var/lib/kubelet/
-		ssh "${SSH_OPTIONS}" "${VM_USER}@${external_ip}" sudo mv "${instance}-key.pem" "${instance}.pem" /var/lib/kubelet/
-		ssh "${SSH_OPTIONS}" "${VM_USER}@${external_ip}" sudo mkdir -p /var/lib/kubernetes/
-		ssh "${SSH_OPTIONS}" "${VM_USER}@${external_ip}" sudo mv ca.pem /var/lib/kubernetes/
-		ssh "${SSH_OPTIONS}" "${VM_USER}@${external_ip}" sudo mv "${instance}.kubeconfig" /var/lib/kubelet/kubeconfig
-		ssh "${SSH_OPTIONS}" "${VM_USER}@${external_ip}" sudo mkdir -p /var/lib/kube-proxy/
-		ssh "${SSH_OPTIONS}" "${VM_USER}@${external_ip}" sudo mv kube-proxy.kubeconfig /var/lib/kube-proxy/kubeconfig
+		do_ssh "${VM_USER}@${external_ip}" sudo mkdir -p /var/lib/kubelet/
+		do_ssh "${VM_USER}@${external_ip}" sudo mv "${instance}-key.pem" "${instance}.pem" /var/lib/kubelet/
+		do_ssh "${VM_USER}@${external_ip}" sudo mkdir -p /var/lib/kubernetes/
+		do_ssh "${VM_USER}@${external_ip}" sudo mv ca.pem /var/lib/kubernetes/
+		do_ssh "${VM_USER}@${external_ip}" sudo mv "${instance}.kubeconfig" /var/lib/kubelet/kubeconfig
+		do_ssh "${VM_USER}@${external_ip}" sudo mkdir -p /var/lib/kube-proxy/
+		do_ssh "${VM_USER}@${external_ip}" sudo mv kube-proxy.kubeconfig /var/lib/kube-proxy/kubeconfig
 
-		scp "${SSH_OPTIONS}" "${DIR}/../etc/cni/net.d/"*.conf "${VM_USER}@${external_ip}":~/
+		do_scp "${DIR}/../etc/cni/net.d/"*.conf "${VM_USER}@${external_ip}":~/
 
 		echo "Moving cni configs to correct location for k8s on ${instance}..."
-		ssh "${SSH_OPTIONS}" "${VM_USER}@${external_ip}" sudo mkdir -p /etc/cni/net.d/
-		ssh "${SSH_OPTIONS}" "${VM_USER}@${external_ip}" sudo mv 10-bridge.conf 99-loopback.conf /etc/cni/net.d/
+		do_ssh "${VM_USER}@${external_ip}" sudo mkdir -p /etc/cni/net.d/
+		do_ssh "${VM_USER}@${external_ip}" sudo mv 10-bridge.conf 99-loopback.conf /etc/cni/net.d/
 
 		echo "Copying k8s worker install script to ${instance}..."
-		scp "${SSH_OPTIONS}" "${DIR}/install_kubernetes_worker.sh" "${VM_USER}@${external_ip}":~/
+		do_scp "${DIR}/install_kubernetes_worker.sh" "${VM_USER}@${external_ip}":~/
 
-		ssh "${SSH_OPTIONS}" "${VM_USER}@${external_ip}" sudo mkdir -p /etc/systemd/system/
+		do_ssh "${VM_USER}@${external_ip}" sudo mkdir -p /etc/systemd/system/
 		services=( kubelet.service kube-proxy.service )
 		for service in "${services[@]}"; do
 			echo "Copying $service to ${instance}..."
-			scp "${SSH_OPTIONS}" "${DIR}/../etc/systemd/system/${service}" "${VM_USER}@${external_ip}":~/
-			ssh "${SSH_OPTIONS}" "${VM_USER}@${external_ip}" sudo mv "$service" /etc/systemd/system/
+			do_scp "${DIR}/../etc/systemd/system/${service}" "${VM_USER}@${external_ip}":~/
+			do_ssh "${VM_USER}@${external_ip}" sudo mv "$service" /etc/systemd/system/
 		done
 
 		echo "Running install_kubernetes_worker.sh on ${instance}..."
-		ssh "${SSH_OPTIONS}" "${VM_USER}@${external_ip}" CLOUD_PROVIDER="${CLOUD_PROVIDER}" sudo -E  bash -c './install_kubernetes_worker.sh'
+		do_ssh "${VM_USER}@${external_ip}" CLOUD_PROVIDER="${CLOUD_PROVIDER}" sudo -E  bash -c './install_kubernetes_worker.sh'
 
 		# cleanup the script after install
-		ssh "${SSH_OPTIONS}" "${VM_USER}@${external_ip}" rm install_kubernetes_worker.sh
+		do_ssh "${VM_USER}@${external_ip}" rm install_kubernetes_worker.sh
 	done
 }
 

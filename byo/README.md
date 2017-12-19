@@ -1,5 +1,5 @@
 Rough idea of how the setup should look like:
-
+```
  +------------
  |   YOU     |
  |./setup.sh ++
@@ -24,3 +24,4 @@ Rough idea of how the setup should look like:
               |                     |worker-node-3 |
               +-------------------> |192.168.37.13 |
                                     +--------------+
+```

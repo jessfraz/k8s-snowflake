@@ -19,6 +19,10 @@ install_etcd() {
 
 	# get the internal ip
 	# this is cloud provider specific
+	# BYO
+	if [ -f /tmp/byo.node ]; then
+			internal_ip=$(ip route get 8.8.8.8 | awk 'NR==1 {print $NF}')
+	fi
 	# Vagrant
 	if grep vagrant ~/.ssh/authorized_keys > /dev/null; then
 		internal_ip="172.17.8.100"

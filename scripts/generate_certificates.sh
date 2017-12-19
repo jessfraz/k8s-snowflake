@@ -117,6 +117,11 @@ generate_certificates() {
 		internal_ips=172.17.8.100
 		public_address=172.17.8.100
 	fi
+	# BYO
+	if [[ "$CLOUD_PROVIDER" == "byo" ]]; then
+		internal_ips=${IPCTRL1}
+		public_address=${IPCTRL1}
+	fi
 
 	# create the kube-apiserver client certificate
 	# 	outputs: kubernetes-key.pem kubernetes.pem

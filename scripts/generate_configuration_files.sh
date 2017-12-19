@@ -22,7 +22,10 @@ generate_configuration_files() {
 	if [[ "$CLOUD_PROVIDER" == "vagrant" ]]; then
 		internal_ip=172.17.8.100
 	fi
-
+	# BYO
+	if [[ "$CLOUD_PROVIDER" == "byo" ]]; then
+		internal_ip=${IPCTRL1}
+  fi
 	# Generate each workers kubeconfig
 	# 	outputs: worker-0.kubeconfig worker-1.kubeconfig worker-2.kubeconfig
 	for i in $(seq 0 "$WORKERS"); do

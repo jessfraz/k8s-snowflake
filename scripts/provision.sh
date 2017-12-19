@@ -12,8 +12,6 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 [[ -n "${SSH_CONFIG}" ]] && SSH_OPTIONS=("${SSH_OPTIONS[@]}" "-F" "${SSH_CONFIG}")
 [[ -n "${SSH_KEYFILE}" ]] && SSH_OPTIONS=("${SSH_OPTIONS[@]}" "-i" "${SSH_KEYFILE}")
 
-
-
 # get the controller node public ip address
 # this is cloud provider specific
 # Google Cloud
@@ -28,6 +26,10 @@ elif [[ "$CLOUD_PROVIDER" == "azure" ]]; then
 # Vagrant
 elif [[ "$CLOUD_PROVIDER" == "vagrant" ]]; then
 	controller_ip=controller-node
+
+# BYO
+elif [[ "$CLOUD_PROVIDER" == "byo" ]]; then
+	controller_ip=${IPCTRL1}
 
 # none ?????
 else
@@ -77,6 +79,10 @@ do_certs(){
 	  if [[ "$CLOUD_PROVIDER" == "vagrant" ]]; then
 			external_ip=${instance}
 		fi
+		# BYO
+	  if [[ "$CLOUD_PROVIDER" == "byo" ]]; then
+			external_ip=${instance}
+		fi
 
 		# Copy the certificates
 		do_scp "${CERTIFICATE_TMP_DIR}/ca.pem" "${CERTIFICATE_TMP_DIR}/${instance}-key.pem" "${CERTIFICATE_TMP_DIR}/${instance}.pem" "${VM_USER}@${external_ip}":~/
@@ -105,6 +111,10 @@ do_kubeconfigs(){
 		fi
 		# Vagrant
 		if [[ "$CLOUD_PROVIDER" == "vagrant" ]]; then
+			external_ip=${instance}
+		fi
+		# BYO
+		if [[ "$CLOUD_PROVIDER" == "byo" ]]; then
 			external_ip=${instance}
 		fi
 
@@ -194,6 +204,10 @@ do_k8s_controller(){
   # Vagrant
 	if [[ "$CLOUD_PROVIDER" == "vagrant" ]]; then
 		internal_ip=172.17.8.100
+	fi
+	# BYO
+	if [[ "$CLOUD_PROVIDER" == "byo" ]]; then
+		internal_ip=${IPCTRL1}
 	fi
 
 	# configure cilium to use etcd tls

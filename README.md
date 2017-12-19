@@ -111,6 +111,8 @@ should be able to just run `kubectl` after!
 
 Make sure you have the required nodes ready and SSH access is configured.
 
+> **NOTE:** make sure the worker nodes are named like "worker-node-0", "worker-node-1", "worker-node-2" to make it script friendly.
+
 To provision your cluster, clone this repo and run:
 
 ```console

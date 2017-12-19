@@ -277,6 +277,10 @@ do_k8s_worker(){
 		if [[ "$CLOUD_PROVIDER" == "vagrant" ]]; then
 			external_ip=${instance}
 		fi
+		# BYO
+		if [[ "$CLOUD_PROVIDER" == "byo" ]]; then
+			external_ip=${instance}
+		fi
 
 		echo "Moving certficates to correct location for k8s on ${instance}..."
 		do_ssh "${VM_USER}@${external_ip}" sudo mkdir -p /var/lib/kubelet/
@@ -318,6 +322,9 @@ do_end_checks(){
 	fi
 	if [[ "$CLOUD_PROVIDER" == "vagrant" ]]; then
 		controller_ip=172.17.8.100
+	fi
+	if [[ "$CLOUD_PROVIDER" == "byo" ]]; then
+		controller_ip=${IPCTRL1}
 	fi
 
 	# check that we can reach the kube-apiserver externally

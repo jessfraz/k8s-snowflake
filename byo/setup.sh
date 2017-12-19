@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# This script provisions a cluster running in vsphere/kvm/xen with clear linux os
+# This script provisions a cluster running in bare/vsphere/kvm/xen with clear linux os
 # and provisions a kubernetes cluster on it.
 #
 # The script assumes you have all nodes ready and ssh configured from where you plan to run from.

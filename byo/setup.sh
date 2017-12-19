@@ -39,7 +39,7 @@ ssh -q -o BatchMode=yes -o ConnectTimeout=10 ${VM_USER}@${CONTROLLER_NODE_NAME} 
 ssh -q -o BatchMode=yes -o ConnectTimeout=10 ${VM_USER}@${IPCTRL1} exit && echo $host "$IPCTRL1: SSH Connection...OK" || echo $host "$IPCTRL1: SSH Connection...FAILED" | exit 1
 for i in $(seq 0 "$WORKERS"); do
 	worker_node_name="worker-node-${i}"
-        sshh -q -o BatchMode=yes -o ConnectTimeout=10 ${VM_USER}@${worker_node_name} /tmp/byo.node | exit && echo $host "$worker_node_name: SSH Connection...OK" || echo $host "$worker_node_name: SSH Connection...FAILED" | exit 1
+        ssh -q -o BatchMode=yes -o ConnectTimeout=10 ${VM_USER}@${worker_node_name} /tmp/byo.node | exit && echo $host "$worker_node_name: SSH Connection...OK" || echo $host "$worker_node_name: SSH Connection...FAILED" | exit 1
         shopt -s lastpipe
 	dig ${worker_node_name} A +short | tail -n1 | readarray -t theip; ssh -q ${VM_USER}@${theip} exit && echo $host "$theip: SSH Connection...OK" || echo $host "$theip: SSH Connection...FAILED" | exit 1
         shopt -u lastpipe

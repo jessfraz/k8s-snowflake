@@ -119,8 +119,8 @@ generate_certificates() {
 	fi
 	# BYO
 	if [[ "$CLOUD_PROVIDER" == "byo" ]]; then
-		internal_ips=${IPCTRL1}
-		public_address=${IPCTRL1}
+		internal_ips=$(ip route get 255.255.255.255 | grep -Po '(?<=src )(\d{1,3}.){4}'| head --bytes -2)
+		public_address=$(ip route get 255.255.255.255 | grep -Po '(?<=src )(\d{1,3}.){4}'| head --bytes -2)
 	fi
 
 	# create the kube-apiserver client certificate

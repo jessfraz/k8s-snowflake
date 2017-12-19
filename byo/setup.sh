@@ -22,6 +22,7 @@ read IPCTRL1
 export SSH_KEYFILE=${SSH_KEYFILE:-${HOME}/.ssh/id_rsa}
 export WORKERS=${WORKERS:-2}
 export VM_USER=${VM_USER:-root}
+export RESOURCE_GROUP=${RESOURCE_GROUP:-kubernetes-clear-linux-snowflake}
 export CONTROLLER_NODE_NAME IPCTRL1
 
 if [[ ! -f "$SSH_KEYFILE" ]]; then

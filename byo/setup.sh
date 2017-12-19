@@ -1,9 +1,9 @@
 #!/bin/bash
 #
-# This script provisions a cluster running in vsphere with clear linux os
+# This script provisions a cluster running in vsphere/kvm/xen with clear linux os
 # and provisions a kubernetes cluster on it.
 #
-# The script assumes you already have the packer command line tool `packer`.
+# The script assumes you have all nodes ready and ssh configured from where you plan to run from.
 #
 set -e
 set -o pipefail

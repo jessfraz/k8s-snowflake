@@ -25,7 +25,7 @@ generate_configuration_files() {
 	# BYO
 	if [[ "$CLOUD_PROVIDER" == "byo" ]]; then
 		internal_ip=${IPCTRL1}
-  fi
+        fi
 	# Generate each workers kubeconfig
 	# 	outputs: worker-0.kubeconfig worker-1.kubeconfig worker-2.kubeconfig
 	for i in $(seq 0 "$WORKERS"); do

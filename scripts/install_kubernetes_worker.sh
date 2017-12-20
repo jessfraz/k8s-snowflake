@@ -87,7 +87,7 @@ configure() {
 	# get the hostname
 	hostname=$(hostname -s)
 	# get the worker number
-	worker=$(echo "$hostname" | grep -Eo '[0-9]+$')
+		worker=$(echo "$hostname" | grep -Eo '[0-9]+$')
 	pod_cidr="10.200.${worker}.0/24"
 
 	# update the cni bridge conf file
@@ -119,6 +119,9 @@ install_kubernetes_worker(){
 
 	install_cni
 	if [[ "$CLOUD_PROVIDER" == "azure" ]]; then
+		install_azure_cni
+	fi
+	if [[ "$CLOUD_PROVIDER" == "byo" ]]; then
 		install_azure_cni
 	fi
 	install_cri_containerd

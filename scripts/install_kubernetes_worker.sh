@@ -121,9 +121,7 @@ install_kubernetes_worker(){
 	if [[ "$CLOUD_PROVIDER" == "azure" ]]; then
 		install_azure_cni
 	fi
-	if [[ "$CLOUD_PROVIDER" == "byo" ]]; then
-		install_azure_cni
-	fi
+	
 	install_cri_containerd
 	install_kubernetes_components
 	configure

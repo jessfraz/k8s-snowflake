@@ -65,6 +65,10 @@ generate_certificates() {
 		if [[ "$CLOUD_PROVIDER" == "azure" ]]; then
 			external_ip=$(az vm show -g "$RESOURCE_GROUP" -n "$instance" --show-details --query 'publicIps' -o tsv | tr -d '[:space:]')
 		fi
+		# BYO
+		if [[ "$CLOUD_PROVIDER" == "byo" ]]; then
+			external_ip=$(ping -c 1 "$instance" | gawk -F '[()]' '/PING/{print $2}')
+		fi
 
 		# get the internal ip for the instance
 		# this is cloud provider specific
@@ -75,6 +79,10 @@ generate_certificates() {
 		# Azure
 		if [[ "$CLOUD_PROVIDER" == "azure" ]]; then
 			internal_ip=$(az vm show -g "$RESOURCE_GROUP" -n "$instance" --show-details --query 'privateIps' -o tsv | tr -d '[:space:]')
+		fi
+		# BYO
+		if [[ "$CLOUD_PROVIDER" == "byo" ]]; then
+			internal_ip=$(ping -c 1 "$instance" | gawk -F '[()]' '/PING/{print $2}')
 		fi
 
 		# generate the certificates
@@ -119,8 +127,8 @@ generate_certificates() {
 	fi
 	# BYO
 	if [[ "$CLOUD_PROVIDER" == "byo" ]]; then
-		internal_ips=$(ip route get 255.255.255.255 | grep -Po '(?<=src )(\d{1,3}.){4}'| head --bytes -2)
-		public_address=$(ip route get 255.255.255.255 | grep -Po '(?<=src )(\d{1,3}.){4}'| head --bytes -2)
+		internal_ips=${IPCTRL1}
+		public_address=${IPCTRL1}
 	fi
 
 	# create the kube-apiserver client certificate

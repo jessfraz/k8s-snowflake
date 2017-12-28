@@ -325,6 +325,12 @@ do_end_checks(){
 	fi
 	if [[ "$CLOUD_PROVIDER" == "byo" ]]; then
 		controller_ip=${IPCTRL1}
+		echo "Make sure you add a static route to each worker..."
+		for i in $(seq 0 "$WORKERS"); do
+		instance="worker-node-${i}"
+        worker_ip=$(ping -c1 ${instance} | awk '/PING/ { print $3 }' | tr -d '()')
+        echo "route add -net 10.200.${i}.0 netmask 255.255.255.0 gw ${worker_ip}"
+		done
 	fi
 
 	# check that we can reach the kube-apiserver externally

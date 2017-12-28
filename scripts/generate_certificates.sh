@@ -138,7 +138,7 @@ generate_certificates() {
 		-ca="${tmpdir}/ca.pem" \
 		-ca-key="${tmpdir}/ca-key.pem" \
 		-config="${CA_CONFIG_DIR}/config.json" \
-		-hostname="${internal_ips},${public_address},0.0.0.0,127.0.0.1,kubernetes.default" \
+		-hostname="10.32.0.1,${internal_ips},${public_address},0.0.0.0,127.0.0.1,kubernetes.default" \
 		-profile=kubernetes \
 		"${CA_CONFIG_DIR}/kubernetes-csr.json" | cfssljson -bare kubernetes
 

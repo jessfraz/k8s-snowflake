@@ -55,14 +55,14 @@ Install the following bundles:
 Then enable root for ssh:
 
 ```echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
-   systemctl enable sshd
-   systemctl start sshd
+ systemctl enable sshd
+ systemctl start sshd
 ```
 
 And enable/start docker:
 
 ```systemctl enable docker
-   systemctl start docker
+systemctl start docker
 ```
 
 If you enabled nested virtualization as mentioned before, you should see cc-runtime as the default:

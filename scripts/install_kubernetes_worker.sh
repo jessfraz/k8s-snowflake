@@ -122,7 +122,9 @@ install_kubernetes_worker(){
 	fi
 	if [[ "$CLOUD_PROVIDER" == "byo" ]]; then
 		# This is because of Docker https://github.com/docker/docker/pull/28257 new iptables rule to DROP
-		iptables -P FORWARD ACCEPT
+		#iptables -P FORWARD ACCEPT
+		iptables -A FORWARD -i cni0 -j ACCEPT
+		iptables -A FORWARD -o cni0 -j ACCEPT
 	fi
 	install_cni
 	if [[ "$CLOUD_PROVIDER" == "azure" ]]; then

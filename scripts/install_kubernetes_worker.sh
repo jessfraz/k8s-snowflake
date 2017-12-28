@@ -91,7 +91,7 @@ configure() {
 	# get the hostname
 	hostname=$(hostname -s)
 	# get the worker number
-		worker=$(echo "$hostname" | grep -Eo '[0-9]+$')
+	worker=$(echo "$hostname" | grep -Eo '[0-9]+$')
 	pod_cidr="10.200.${worker}.0/24"
 
 	# update the cni bridge conf file

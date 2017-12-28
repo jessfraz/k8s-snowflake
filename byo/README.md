@@ -49,12 +49,12 @@ Log into the console, login as 'root' and set the password (first and only time)
 
 Install the following bundles:
 
-```swupd bundle-add sysadmin-basic network-basic containers-virt
+``swupd bundle-add sysadmin-basic network-basic containers-virt
 ```
 
 Then enable root for ssh:
 
-```echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
+``echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
  systemctl enable sshd
  systemctl start sshd
 ```

@@ -102,12 +102,14 @@ DNS=192.168.2.217
 
 Set hostname (let's keep it tidy)
 
-```hostnamectl set-hostname k8s-controller
+```
+hostnamectl set-hostname k8s-controller
 ```
 
 Disable swap
 
-```swapoff -a
+```
+swapoff -a
 ```
 
 ## TODO

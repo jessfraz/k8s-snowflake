@@ -49,42 +49,49 @@ Log into the console, login as 'root' and set the password (first and only time)
 
 Install the following bundles:
 
-``swupd bundle-add sysadmin-basic network-basic containers-virt
+```
+swupd bundle-add sysadmin-basic network-basic containers-virt
 ```
 
 Then enable root for ssh:
 
-``echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
- systemctl enable sshd
- systemctl start sshd
+```
+echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
+systemctl enable sshd
+systemctl start sshd
 ```
 
 And enable/start docker:
 
-```systemctl enable docker
+```
+systemctl enable docker
 systemctl start docker
 ```
 
 If you enabled nested virtualization as mentioned before, you should see cc-runtime as the default:
 
-```$ docker info | grep Runtime
+```
+$ docker info | grep Runtime
 Runtimes: cc-runtime runc
 Default Runtime: cc-runtime
 ```
 
 Create hosts file (needed kubelet iirc)
 
-```touch /etc/hosts
+```
+touch /etc/hosts
 ```
 
 Set static IP (prolly optional)
 
-```mkdir -p /etc/systemd/network && vim /etc/systemd/network/50-static.network
+```
+mkdir -p /etc/systemd/network && vim /etc/systemd/network/50-static.network
 ```
 
 Example of static IP on one of my (working) nodes:
 
-```[Match]
+```
+[Match]
 Name=ens192
 
 [Network]

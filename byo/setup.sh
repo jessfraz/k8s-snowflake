@@ -39,7 +39,7 @@ ssh -q -o BatchMode=yes -o ConnectTimeout=10 ${VM_USER}@${IPCTRL1} exit && echo 
 for i in $(seq 0 "$WORKERS"); do
         worker_node_name="worker-node-${i}"
         ssh -q ${VM_USER}@${worker_node_name} exit && echo $host "$worker_node_name: SSH Connection...OK" || echo $host "$worker_node_name: SSH Connection...FAILED" | exit 1
-        theip=$(host ${worker_node_name} | awk '/has address/ { print $4 }')
+        theip=$(ping -c1 ${worker_node_name} | awk '/PING/ { print $3 }' | tr -d '()')
         ssh -q ${VM_USER}@${theip} exit && echo $host "$theip: SSH Connection...OK" || echo $host "$theip: SSH Connection...FAILED" | exit 1
 done
 

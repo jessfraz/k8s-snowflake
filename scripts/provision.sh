@@ -325,7 +325,7 @@ do_end_checks(){
 	fi
 	if [[ "$CLOUD_PROVIDER" == "byo" ]]; then
 		controller_ip=${IPCTRL1}
-		echo "Make sure you add a static route to each worker..."
+		echo "Make sure you add a static route for each worker CIDR on the controller-node..."
 		for i in $(seq 0 "$WORKERS"); do
 		instance="worker-node-${i}"
         worker_ip=$(ping -c1 ${instance} | awk '/PING/ { print $3 }' | tr -d '()')

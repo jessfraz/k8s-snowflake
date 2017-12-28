@@ -36,8 +36,8 @@ i.e. ```wget https://download.clearlinux.org/current/clear-19950-installer.iso.x
 
 Create VM shell for each controller+worker, **enable nested virtualization features**, sized with approx:
 
-  2x vCPU
-  8GB RAM
+  2x vCPU  
+  8GB RAM  
   20-200GB of Disk (depending how serious you are)
 
 Spin them up booting from the iso/img image, set IP settings if needed and install OS to disk.
@@ -76,7 +76,7 @@ Runtimes: cc-runtime runc
 Default Runtime: cc-runtime
 ```
 
-Create hosts file (needed kubelet iirc)
+Create hosts file (needed for kubelet iirc)
 
 ```
 touch /etc/hosts
@@ -85,12 +85,13 @@ touch /etc/hosts
 Set static IP (prolly optional)
 
 ```
-mkdir -p /etc/systemd/network && vim /etc/systemd/network/50-static.network
+mkdir -p /etc/systemd/network && nano /etc/systemd/network/50-static.network
 ```
 
 Example of static IP on one of my (working) nodes:
 
 ```
+$ more /etc/systemd/network/50-static.network
 [Match]
 Name=ens192
 
@@ -114,5 +115,5 @@ swapoff -a
 
 ## TODO
 
-_Wrap all this stuff into packer/terraform/cloud-init/ovf... I'll get tuit_
+_Wrap all this stuff into packer/terraform/cloud-init/ovf... I'll get tuit_  
 _Clarify how to 'sed' kubelet.service to run with swap on_

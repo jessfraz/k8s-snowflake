@@ -107,6 +107,24 @@ should be able to just run `kubectl` after!
 > **NOTE:** if you want to change the number of nodes, etc checkout the
 > environment variables at the top of [`gcloud/setup.sh`](gcloud/setup.sh).
 
+## BYO
+
+Make sure you have the required nodes ready and SSH access is configured.
+
+> **NOTE:** make sure the worker nodes are named like "worker-node-0", "worker-node-1", "worker-node-2" to make it script friendly.
+
+To provision your cluster, clone this repo and run:
+
+```console
+$ ./byo/setup.sh
+```
+
+The script automatically sets up an `admin` user with kubeconfig locally so you
+should be able to just run `kubectl` after!
+
+> **NOTE:** if you want to change the number of nodes, etc checkout the
+> environment variables at the top of [`byo/setup.sh`](byo/setup.sh).
+
 ## Acknowledgements
 
 Thanks to [@kelseyhightower](https://github.com/kelseyhightower) for

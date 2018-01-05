@@ -65,6 +65,10 @@ generate_certificates() {
 		if [[ "$CLOUD_PROVIDER" == "azure" ]]; then
 			external_ip=$(az vm show -g "$RESOURCE_GROUP" -n "$instance" --show-details --query 'publicIps' -o tsv | tr -d '[:space:]')
 		fi
+		# BYO
+		if [[ "$CLOUD_PROVIDER" == "byo" ]]; then
+			external_ip=$(ping -c 1 "$instance" | gawk -F '[()]' '/PING/{print $2}')
+		fi
 
 		# get the internal ip for the instance
 		# this is cloud provider specific
@@ -75,6 +79,10 @@ generate_certificates() {
 		# Azure
 		if [[ "$CLOUD_PROVIDER" == "azure" ]]; then
 			internal_ip=$(az vm show -g "$RESOURCE_GROUP" -n "$instance" --show-details --query 'privateIps' -o tsv | tr -d '[:space:]')
+		fi
+		# BYO
+		if [[ "$CLOUD_PROVIDER" == "byo" ]]; then
+			internal_ip=$(ping -c 1 "$instance" | gawk -F '[()]' '/PING/{print $2}')
 		fi
 
 		# generate the certificates
@@ -117,6 +125,11 @@ generate_certificates() {
 		internal_ips=172.17.8.100
 		public_address=172.17.8.100
 	fi
+	# BYO
+	if [[ "$CLOUD_PROVIDER" == "byo" ]]; then
+		internal_ips=${IPCTRL1}
+		public_address=${IPCTRL1}
+	fi
 
 	# create the kube-apiserver client certificate
 	# 	outputs: kubernetes-key.pem kubernetes.pem
@@ -125,7 +138,7 @@ generate_certificates() {
 		-ca="${tmpdir}/ca.pem" \
 		-ca-key="${tmpdir}/ca-key.pem" \
 		-config="${CA_CONFIG_DIR}/config.json" \
-		-hostname="${internal_ips},${public_address},0.0.0.0,127.0.0.1,kubernetes.default" \
+		-hostname="10.32.0.1,${internal_ips},${public_address},0.0.0.0,127.0.0.1,kubernetes.default" \
 		-profile=kubernetes \
 		"${CA_CONFIG_DIR}/kubernetes-csr.json" | cfssljson -bare kubernetes
 

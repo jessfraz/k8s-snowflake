@@ -32,6 +32,10 @@ install_cni() {
 	curl -sSL "$download_uri" | tar -xz -C "$cni_bin"
 
 	chmod +x "${cni_bin}"/*
+	# touch /etc/hosts if it does not already exist (in case you ain't running clear linux on Azure)
+	if [[ ! -f /etc/hosts ]]; then
+		touch /etc/hosts
+	fi
 }
 
 install_azure_cni() {
@@ -116,11 +120,15 @@ install_kubernetes_worker(){
 	if [[ "$CLOUD_PROVIDER" == "vagrant" ]]; then
 		sudo apt-get -y install socat
 	fi
-
+	if [[ "$CLOUD_PROVIDER" == "byo" ]]; then
+		# This is because of Docker https://github.com/docker/docker/pull/28257 new iptables rule to DROP
+		iptables -P FORWARD ACCEPT
+	fi
 	install_cni
 	if [[ "$CLOUD_PROVIDER" == "azure" ]]; then
 		install_azure_cni
 	fi
+
 	install_cri_containerd
 	install_kubernetes_components
 	configure

@@ -99,6 +99,10 @@ Name=ens192
 Address=192.168.37.11/24
 Gateway=192.168.37.254
 DNS=192.168.2.217
+
+[Route]
+Gateway=192.168.37.11
+Destination=10.200.1.0/24
 ```
 
 Set hostname (let's keep it tidy)

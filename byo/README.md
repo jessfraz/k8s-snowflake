@@ -99,10 +99,27 @@ Name=ens192
 Address=192.168.37.11/24
 Gateway=192.168.37.254
 DNS=192.168.2.217
+```
 
+Example of static IP on the controller:
+```
+[Match]
+Name=ens192
+
+[Network]
+Address=192.168.37.9/24
+Gateway=192.168.37.254
+DNS=192.168.2.217
+
+[Route]
+Gateway=192.168.37.10
+Destination=10.200.0.0/24
 [Route]
 Gateway=192.168.37.11
 Destination=10.200.1.0/24
+[Route]
+Gateway=192.168.37.12
+Destination=10.200.2.0/24
 ```
 
 Set hostname (let's keep it tidy)

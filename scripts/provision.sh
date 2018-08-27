@@ -74,7 +74,7 @@ do_certs(){
 			external_ip=$(az vm show -g "$RESOURCE_GROUP" -n "$instance" --show-details --query 'publicIps' -o tsv | tr -d '[:space:]')
 		fi
 		# Vagrant
-	  if [[ "$CLOUD_PROVIDER" == "vagrant" ]]; then
+		if [[ "$CLOUD_PROVIDER" == "vagrant" ]]; then
 			external_ip=${instance}
 		fi
 
@@ -212,7 +212,7 @@ do_k8s_controller(){
 
 	# wait for kube-apiserver service to come up
 	# TODO: make this not a shitty sleep you goddamn savage
-  echo "Waiting for kube-apiserver"
+	echo "Waiting for kube-apiserver"
 	while ! do_ssh "${VM_USER}@${controller_ip}" kubectl get componentstatuses > /dev/null; do
 		echo -n "."
 		sleep 10

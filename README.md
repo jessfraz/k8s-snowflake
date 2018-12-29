@@ -8,6 +8,12 @@ Except it's my _snowflake opinionated k8s distro_ :)
 
 > **NOTE:** current support is only for Azure and Google Cloud.
 
+**Table of Contents**
+
+<!-- toc -->
+
+<!-- tocstop -->
+
 ## Provisioning
 
 These are **opinionated scripts**. If you don't like my opinions maybe consider

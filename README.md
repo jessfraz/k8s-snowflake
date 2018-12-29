@@ -12,6 +12,16 @@ Except it's my _snowflake opinionated k8s distro_ :)
 
 <!-- toc -->
 
+- [Provisioning](#provisioning)
+  * [Base OS](#base-os)
+  * [Encrypted `etcd` secret data at rest](#encrypted-etcd-secret-data-at-rest)
+  * [RBAC and Pod Security Policies](#rbac-and-pod-security-policies)
+  * [Container Runtime](#container-runtime)
+  * [Networking](#networking)
+- [Azure](#azure)
+- [Google Cloud](#google-cloud)
+- [Acknowledgements](#acknowledgements)
+
 <!-- tocstop -->
 
 ## Provisioning
